@@ -39,6 +39,22 @@
     font-size:1.1rem; background:#0f3460; color:var(--text);
   }
   input::placeholder{ color:var(--muted); }
+  select{
+    width:100%; padding:14px; margin:8px 0; border-radius:10px; border:none;
+    font-size:1.1rem; background:#0f3460; color:var(--text);
+    -webkit-appearance:none; appearance:none; cursor:pointer;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239aa0b4' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'></polyline></svg>");
+    background-repeat:no-repeat; background-position:right 14px center; background-size:18px;
+    padding-right:40px;
+  }
+  select:focus{ outline:2px solid var(--accent); outline-offset:2px; }
+  select option{ background:var(--card); color:var(--text); }
+  .file-upload-label{
+    display:block; width:100%; box-sizing:border-box; text-align:center; padding:12px;
+    margin-top:8px; border-radius:10px; border:2px dashed var(--muted);
+    color:var(--muted); font-size:.95rem; cursor:pointer; transition:.15s;
+  }
+  .file-upload-label:hover{ border-color:var(--accent); color:var(--text); }
   button.primary{
     width:100%; padding:14px; margin-top:8px; border:none; border-radius:10px;
     background:var(--accent); color:white; font-size:1.1rem; font-weight:700;
@@ -81,12 +97,26 @@
     .options{ grid-template-columns:1fr; }
     .role-buttons{ flex-direction:column; }
   }
+
+  /* Pantalla de pregunta del jugador (4 opciones) más grande en escritorio */
+  @media (min-width:700px){
+    .box:has(#screen-player-question:not(.hidden)){ max-width:900px; }
+    .box:has(#screen-player-question:not(.hidden)) .card{ padding:40px; }
+    #screen-player-question .timer{ font-size:1.6rem; margin-bottom:24px; }
+    #screen-player-question .question-text{ font-size:2rem; margin-bottom:36px; }
+    #screen-player-question .options{ gap:20px; }
+    #screen-player-question .opt-btn{
+      padding:32px 18px; min-height:120px; font-size:1.5rem; border-radius:16px;
+    }
+  }
   @media (prefers-color-scheme:light){
     :root:not([data-theme="dark"]){
       --bg:#eef1fb; --card:#ffffff; --text:#1a1a2e; --muted:#6b7280;
     }
     body{ background:linear-gradient(135deg,#eef1fb,#dfe6f7); }
-    input, .role-btn, .chip, .rank{ background:#f1f3fb; color:var(--text); }
+    input, select, .role-btn, .chip, .rank{ background:#f1f3fb; color:var(--text); }
+    select{ background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'></polyline></svg>"); background-repeat:no-repeat; background-position:right 14px center; background-size:18px; }
+    select option{ background:#ffffff; color:var(--text); }
   }
 </style>
 </head>
@@ -112,7 +142,26 @@
 
     <!-- HOST: CREAR PARTIDA -->
     <div id="screen-host-setup" class="hidden">
-      <p class="center">Pulsa para crear una nueva partida</p>
+      <p class="center">Elige el cuestionario</p>
+
+          <div id="quizset-select-wrap" class="hidden">
+        <select id="quizset-select" onchange="onQuizSetChange()"></select>
+      </div>
+
+      <p class="center status-msg" style="margin-top:10px">— o —</p>
+      <label class="file-upload-label" for="quizset-file-input">📂 Subir mi propio JSON</label>
+      <input type="file" id="quizset-file-input" accept="application/json,.json" style="display:none" onchange="onQuizSetFileChosen(event)">
+
+      <p class="center status-msg" id="quizset-status" style="margin-top:10px"></p>
+
+      <p class="center" style="margin-top:14px">Número de preguntas</p>
+      <select id="quizcount-select" onchange="onQuizCountChange()">
+        <option value="10">10 preguntas</option>
+        <option value="20">20 preguntas</option>
+        <option value="all">Todas</option>
+      </select>
+      <p class="center status-msg" id="quizcount-status" style="margin-top:6px"></p>
+
       <button class="primary" onclick="hostCreateGame()">Crear partida</button>
       <button class="secondary" onclick="backToRole()">← Volver</button>
     </div>
@@ -150,7 +199,7 @@
     <!-- PLAYER: UNIRSE -->
     <div id="screen-player-setup" class="hidden">
       <input type="text" id="player-pin" placeholder="PIN de la partida" maxlength="6" inputmode="numeric">
-      <input type="text" id="player-name" placeholder="Tu nombre" maxlength="20">
+      <input type="text" id="player-name" placeholder="Tu nombre (opcional)" maxlength="20">
       <button class="primary" onclick="playerJoin()">Unirse</button>
       <button class="secondary" onclick="backToRole()">← Volver</button>
       <p class="status-msg" id="player-join-error"></p>
@@ -195,39 +244,166 @@
 <script>
 /* ============================================================
    1) CONFIGURACIÓN DE FIREBASE Y PREGUNTAS — CARGA EXTERNA
-   Se leen en tiempo de ejecución desde dos archivos JSON que
-   deben estar en la MISMA carpeta que este HTML:
-     - firebase-config.json  → credenciales de tu proyecto Firebase
-     - questions.json        → las preguntas del quiz
-   Así puedes editar ambos sin tocar el código.
+   firebase-config.json  → credenciales de tu proyecto Firebase
+   (siempre en la misma carpeta que este HTML)
+
+   Las preguntas se pueden elegir de tres formas:
+     a) Un manifiesto opcional "quiz-sets.json" con varios sets
+        predefinidos, ej:
+        [
+          { "name": "Sistemas Operativos", "file": "questions.json" },
+          { "name": "Redes",               "file": "questions-redes.json" }
+        ]
+        Si existe, aparece como desplegable en la pantalla del host.
+     b) Si no hay manifiesto, se usa questions.json por defecto
+        (comportamiento igual que antes).
+     c) El profesor puede subir un JSON propio desde su dispositivo
+        en el momento de crear la partida (no requiere subir nada
+        al repositorio ni tocar GitHub Pages).
    Ojo: al ser una página estática, estos JSON son tan públicos
    como el propio HTML (cualquiera puede abrirlos con su URL).
    ============================================================ */
 let firebaseConfig = null;
 let QUESTIONS = null;
 let db = null;
+let quizSets = [];          // [{name, file}] del manifiesto, si existe
+let uploadedQuestions = null; // preguntas cargadas desde archivo local
 
 async function loadConfigAndQuestions(){
   const loadingMsg = document.getElementById('loading-msg');
   try{
-    const [configRes, questionsRes] = await Promise.all([
-      fetch('firebase-config.json'),
-      fetch('questions.json')
-    ]);
+    const configRes = await fetch('firebase-config.json');
     if (!configRes.ok) throw new Error('No se pudo leer firebase-config.json');
-    if (!questionsRes.ok) throw new Error('No se pudo leer questions.json');
-
     firebaseConfig = await configRes.json();
-    QUESTIONS = await questionsRes.json();
 
     firebase.initializeApp(firebaseConfig);
     db = firebase.database();
 
+    await loadQuizSetsManifest();
+
     show('screen-role');
   } catch (err){
     loadingMsg.textContent = '⚠️ Error al cargar la configuración: ' + err.message +
-      '. Revisa que firebase-config.json y questions.json existan junto a este HTML.';
+      '. Revisa que firebase-config.json exista junto a este HTML.';
   }
+}
+
+// Intenta leer quiz-sets.json (manifiesto de sets predefinidos).
+// Si no existe, se usa questions.json como única opción por defecto.
+async function loadQuizSetsManifest(){
+  const wrap = document.getElementById('quizset-select-wrap');
+  const select = document.getElementById('quizset-select');
+  try {
+    const res = await fetch('quiz-sets.json');
+    if (res.ok) {
+      quizSets = await res.json();
+    } else {
+      throw new Error('sin manifiesto');
+    }
+  } catch (e) {
+    quizSets = [{ name: 'Preguntas por defecto', file: 'questions.json' }];
+  }
+
+  select.innerHTML = '';
+  quizSets.forEach((set, i) => {
+    const opt = document.createElement('option');
+    opt.value = i;
+    opt.textContent = set.name;
+    select.appendChild(opt);
+  });
+  wrap.classList.remove('hidden');
+  onQuizSetChange();
+}
+
+function onQuizSetChange(){
+  uploadedQuestions = null;
+  document.getElementById('quizset-file-input').value = '';
+  const idx = document.getElementById('quizset-select').value;
+  const set = quizSets[idx];
+  document.getElementById('quizset-status').textContent = set ? ('Seleccionado: ' + set.name) : '';
+  updateQuizCountStatus();
+}
+
+function onQuizCountChange(){
+  updateQuizCountStatus();
+}
+
+// Muestra cuántas preguntas se usarán realmente según lo disponible.
+function updateQuizCountStatus(){
+  const countEl = document.getElementById('quizcount-status');
+  const desired = document.getElementById('quizcount-select').value;
+  if (desired === 'all') {
+    countEl.textContent = 'Se usarán todas las preguntas disponibles.';
+  } else {
+    countEl.textContent = 'Se elegirán ' + desired + ' preguntas al azar (si el set tiene menos, se usarán todas).';
+  }
+}
+
+function onQuizSetFileChosen(event){
+  const file = event.target.files[0];
+  const statusEl = document.getElementById('quizset-status');
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const parsed = JSON.parse(reader.result);
+      if (!Array.isArray(parsed) || parsed.length === 0) throw new Error('formato inválido');
+      uploadedQuestions = parsed;
+      statusEl.textContent = '✅ Archivo cargado: ' + file.name + ' (' + parsed.length + ' preguntas)';
+      updateQuizCountStatus();
+    } catch (err) {
+      uploadedQuestions = null;
+      statusEl.textContent = '⚠️ El archivo no es un JSON de preguntas válido.';
+    }
+  };
+  reader.onerror = () => {
+    statusEl.textContent = '⚠️ No se pudo leer el archivo.';
+  };
+  reader.readAsText(file);
+}
+
+// Baraja un array (Fisher-Yates) sin modificar el original.
+function shuffleArray(arr){
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+// Resuelve qué preguntas usar (subidas a mano > set predefinido elegido)
+// y aplica la selección aleatoria de N preguntas antes de dejarlas en QUESTIONS.
+async function resolveQuestionsForNewGame(){
+  const statusEl = document.getElementById('quizset-status');
+  let allQuestions;
+
+  if (uploadedQuestions) {
+    allQuestions = uploadedQuestions;
+  } else {
+    const idx = document.getElementById('quizset-select').value;
+    const set = quizSets[idx];
+    if (!set) { statusEl.textContent = '⚠️ No hay ningún set de preguntas seleccionado.'; return false; }
+    try {
+      const res = await fetch(set.file);
+      if (!res.ok) throw new Error('No se pudo leer ' + set.file);
+      const data = await res.json();
+      if (!Array.isArray(data) || data.length === 0) throw new Error(set.file + ' está vacío o mal formado');
+      allQuestions = data;
+    } catch (err) {
+      statusEl.textContent = '⚠️ ' + err.message;
+      return false;
+    }
+  }
+
+  const desired = document.getElementById('quizcount-select').value;
+  if (desired === 'all') {
+    QUESTIONS = allQuestions;
+  } else {
+    const n = Math.min(parseInt(desired, 10), allQuestions.length);
+    QUESTIONS = shuffleArray(allQuestions).slice(0, n);
+  }
+  return true;
 }
 
 window.addEventListener('DOMContentLoaded', loadConfigAndQuestions);
@@ -253,6 +429,9 @@ let hostQuestionIndex = 0;
 function generatePin(){ return String(Math.floor(1000 + Math.random()*9000)); }
 
 async function hostCreateGame(){
+  const ok = await resolveQuestionsForNewGame();
+  if (!ok) return; // el mensaje de error ya se muestra en quizset-status
+
   let pin;
   // Nos aseguramos de que el PIN no exista ya
   do { pin = generatePin(); }
@@ -265,7 +444,12 @@ async function hostCreateGame(){
     currentQuestionIndex: -1,
     questionStartTime: null,
     players: {},
-    answers: {}
+    answers: {},
+    // Guardamos aquí el set de preguntas ya resuelto (cuestionario elegido +
+    // cantidad aleatoria seleccionada), para que TODOS los jugadores usen
+    // exactamente las mismas preguntas, aunque no tengan acceso al JSON
+    // original (por ejemplo, si el profesor subió un archivo propio).
+    questions: QUESTIONS
   });
 
   document.getElementById('host-pin').textContent = pin;
@@ -402,14 +586,32 @@ let playerGameRef = null;
 let playerTimerInterval = null;
 let playerHasAnswered = false;
 
+// Genera un nombre aleatorio estilo "Adjetivo Animal" para quien no
+// escriba el suyo (por ejemplo: "Panda Veloz", "Zorro Sigiloso").
+const RANDOM_NAME_ANIMALS = [
+  'Panda', 'Zorro', 'Lobo', 'Búho', 'Koala', 'Tigre', 'Pingüino', 'Delfín',
+  'Águila', 'Jaguar', 'Mapache', 'Lince', 'Halcón', 'Nutria', 'Rinoceronte',
+  'Camaleón', 'Erizo', 'Puma', 'Canguro', 'Oso'
+];
+const RANDOM_NAME_ADJECTIVES = [
+  'Veloz', 'Sigiloso', 'Valiente', 'Curioso', 'Astuto', 'Feroz', 'Ágil',
+  'Misterioso', 'Travieso', 'Intrépido', 'Brillante', 'Sabio', 'Audaz',
+  'Épico', 'Escurridizo', 'Legendario', 'Despistado', 'Imparable'
+];
+function generateRandomPlayerName(){
+  const animal = RANDOM_NAME_ANIMALS[Math.floor(Math.random() * RANDOM_NAME_ANIMALS.length)];
+  const adjetivo = RANDOM_NAME_ADJECTIVES[Math.floor(Math.random() * RANDOM_NAME_ADJECTIVES.length)];
+  return `${adjetivo} ${animal}`;
+}
+
 function playerJoin(){
   const pin = document.getElementById('player-pin').value.trim();
-  const name = document.getElementById('player-name').value.trim();
+  const name = document.getElementById('player-name').value.trim() || generateRandomPlayerName();
   const errorEl = document.getElementById('player-join-error');
   errorEl.textContent = '';
 
-  if (!pin || !name){
-    errorEl.textContent = 'Introduce el PIN y tu nombre.';
+  if (!pin){
+    errorEl.textContent = 'Introduce el PIN de la partida.';
     return;
   }
 
@@ -432,6 +634,13 @@ function listenGameState(){
   playerGameRef.on('value', snap => {
     const game = snap.val();
     if (!game) return;
+
+    // Usamos siempre las preguntas guardadas en la propia partida, no un
+    // JSON local: así el jugador ve exactamente el mismo cuestionario
+    // (y el mismo subconjunto aleatorio) que eligió el profesor.
+    if (Array.isArray(game.questions) && game.questions.length > 0){
+      QUESTIONS = game.questions;
+    }
 
     if (game.status === 'lobby'){
       show('screen-player-wait');

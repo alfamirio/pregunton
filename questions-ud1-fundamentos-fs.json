@@ -1,0 +1,122 @@
+[
+  {
+    "text": "¿Qué tres elementos forman un sistema informático?",
+    "options": ["Hardware, software y firmware", "CPU, RAM y disco duro", "Sistema operativo y aplicaciones", "Hardware y periféricos únicamente"],
+    "correct": 0,
+    "time": 15
+  },
+  {
+    "text": "¿Qué modelo describe los bloques funcionales básicos de un ordenador (CPU, memoria, periféricos)?",
+    "options": ["Modelo cliente-servidor", "Modelo de Von Neumann", "Modelo OSI", "Modelo relacional"],
+    "correct": 1,
+    "time": 15
+  },
+  {
+    "text": "¿Qué unidad de la CPU ejecuta las operaciones aritméticas y lógicas?",
+    "options": ["Unidad de Control (UC)", "Unidad Aritmético-Lógica (ALU)", "Registro de instrucciones", "Bus de direcciones"],
+    "correct": 1,
+    "time": 15
+  },
+  {
+    "text": "¿Cuáles son las tres fases del ciclo de instrucción de la CPU?",
+    "options": ["Captación, decodificación y ejecución", "Lectura, escritura y borrado", "Inicio, proceso y fin", "Arranque, carga y apagado"],
+    "correct": 0,
+    "time": 20
+  },
+  {
+    "text": "¿Cuántos dígitos distintos utiliza el sistema de numeración hexadecimal?",
+    "options": ["2", "8", "10", "16"],
+    "correct": 3,
+    "time": 15
+  },
+  {
+    "text": "¿A qué número decimal equivale el binario 1011?",
+    "options": ["9", "10", "11", "13"],
+    "correct": 2,
+    "time": 25
+  },
+  {
+    "text": "Para convertir un número entre binario y hexadecimal, los bits se agrupan de...",
+    "options": ["2 en 2", "3 en 3", "4 en 4", "8 en 8"],
+    "correct": 2,
+    "time": 20
+  },
+  {
+    "text": "¿Qué codificación de caracteres es de longitud variable y puede representar prácticamente cualquier idioma?",
+    "options": ["ASCII", "UTF-8 / Unicode", "EBCDIC", "Base64"],
+    "correct": 1,
+    "time": 15
+  },
+  {
+    "text": "¿Cuántos bytes tiene un kibibyte (KiB)?",
+    "options": ["1000", "1024", "512", "2048"],
+    "correct": 1,
+    "time": 15
+  },
+  {
+    "text": "¿Cuál es la diferencia principal entre un programa y un proceso?",
+    "options": ["Son exactamente lo mismo", "Un programa es código en reposo; un proceso es un programa en ejecución", "Un proceso ocupa menos espacio en disco", "Un programa solo puede ejecutarse una vez"],
+    "correct": 1,
+    "time": 20
+  },
+  {
+    "text": "¿Qué estructura crea el sistema operativo para guardar la información necesaria para gestionar cada proceso?",
+    "options": ["El PCB (Process Control Block)", "El MBR", "El journal", "La ALU"],
+    "correct": 0,
+    "time": 15
+  },
+  {
+    "text": "Un proceso que está esperando a que se completen datos leídos del disco se encuentra en estado...",
+    "options": ["Listo", "En ejecución", "Bloqueado", "Terminado"],
+    "correct": 2,
+    "time": 15
+  },
+  {
+    "text": "¿Qué es la multiprogramación?",
+    "options": ["Ejecutar un único proceso en todo momento", "Tener varios procesos residentes en memoria, aunque la CPU ejecute solo uno en cada instante", "Programar en varios lenguajes simultáneamente", "Repartir un disco en varias particiones"],
+    "correct": 1,
+    "time": 20
+  },
+  {
+    "text": "¿Cuál es el nodo superior de la jerarquía del sistema de archivos en Linux?",
+    "options": ["C:\\", "El directorio /home", "El directorio raíz (/)", "El kernel"],
+    "correct": 2,
+    "time": 15
+  },
+  {
+    "text": "¿Qué sistema de archivos limita el tamaño máximo de un archivo a 4 GB?",
+    "options": ["NTFS", "ext4", "FAT32", "APFS"],
+    "correct": 2,
+    "time": 15
+  },
+  {
+    "text": "¿Qué operación crea la estructura del sistema de archivos (tabla de asignación, directorio raíz...) sobre una partición?",
+    "options": ["El particionado", "El formateo", "El montaje", "La desfragmentación"],
+    "correct": 1,
+    "time": 15
+  },
+  {
+    "text": "¿Qué atributo hace que un archivo no se muestre en el listado normal en sistemas tipo Windows/FAT-NTFS?",
+    "options": ["Solo lectura (R)", "Oculto (H)", "Sistema (S)", "Archivo (A)"],
+    "correct": 1,
+    "time": 15
+  },
+  {
+    "text": "¿Para qué se utilizan las ACL (Access Control List) en un sistema de archivos?",
+    "options": ["Para comprimir archivos automáticamente", "Para definir permisos individuales y detallados más allá del esquema propietario/grupo/otros", "Para cifrar el disco completo", "Para registrar operaciones antes de aplicarlas"],
+    "correct": 1,
+    "time": 20
+  },
+  {
+    "text": "¿Qué registra un sistema de archivos con journaling antes de aplicar una operación de forma definitiva?",
+    "options": ["Una copia de seguridad completa del disco", "La operación en un diario (journal) o log", "Un informe para el usuario", "Nada, no registra nada"],
+    "correct": 1,
+    "time": 20
+  },
+  {
+    "text": "¿Qué sistema de archivos sería más recomendable para el disco de un servidor Linux con datos críticos?",
+    "options": ["FAT32", "exFAT", "ext4 (con journaling)", "Ninguno, no hace falta sistema de archivos"],
+    "correct": 2,
+    "time": 15
+  }
+]

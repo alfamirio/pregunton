@@ -73,6 +73,23 @@ Cada pregunta sigue este formato:
 
 Puedes añadir tantas preguntas como quieras al array.
 
+### 3.1 Varios cuestionarios predefinidos (opcional)
+
+Si quieres poder elegir entre varios temarios antes de crear la partida (por ejemplo "Sistemas Operativos", "Redes"...), crea un archivo `quiz-sets.json` junto a los demás:
+
+```json
+[
+  { "name": "Sistemas Operativos", "file": "questions.json" },
+  { "name": "Redes",               "file": "questions-redes.json" }
+]
+```
+
+Cada `file` debe ser un JSON con el mismo formato que `questions.json`, en la misma carpeta. Si `quiz-sets.json` no existe, la app usa `questions.json` por defecto como única opción, igual que antes.
+
+### 3.2 Subir un cuestionario propio al vuelo
+
+En la pantalla "Crear partida" también hay un botón **"📂 Subir mi propio JSON"**: el profesor puede elegir un archivo `.json` desde su móvil u ordenador en el momento, sin tocar el repositorio ni GitHub Pages. Si sube un archivo, ese es el que se usa (tiene prioridad sobre el desplegable).
+
 ---
 
 ## 💻 Probarlo en local
