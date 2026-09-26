@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Preguntón</title>
+<style>
+  :root{
+    --bg:#1a1a2e; --card:#16213e; --accent:#e94560; --accent2:#0f9b8e;
+    --text:#f1f1f1; --muted:#9aa0b4;
+  }
+  *{box-sizing:border-box;}
+  html{ scroll-padding-top:env(safe-area-inset-top,0px); }
+  html, body{ height:100%; }
+  body{
+    margin:0; font-family:'Segoe UI',system-ui,sans-serif;
+    background:linear-gradient(135deg,var(--bg),#0f0f23);
+    color:var(--text); display:flex; align-items:center; justify-content:center;
+    padding:20px;
+    padding-top:calc(20px + env(safe-area-inset-top,0px));
+    padding-bottom:calc(20px + env(safe-area-inset-bottom,0px));
+  }
+  .box{ width:100%; max-width:640px; }
+  h1{ text-align:center; font-size:clamp(1.4rem,5vw,2rem); margin-bottom:4px; }
+  p.sub{ text-align:center; color:var(--muted); margin-top:0; margin-bottom:24px; }
+  .card{
+    background:var(--card); border-radius:16px; padding:28px;
+    box-shadow:0 10px 30px rgba(0,0,0,.3);
+  }
+  .role-buttons{ display:flex; gap:16px; }
+  .role-btn{
+    flex:1; padding:28px 12px; border-radius:14px; border:2px solid transparent;
+    background:#0f3460; color:var(--text); font-size:1.1rem; font-weight:600;
+    cursor:pointer; transition:.15s;
+  }
+  .role-btn:hover{ border-color:var(--accent); transform:translateY(-2px); }
+  input{
+    width:100%; padding:14px; margin:8px 0; border-radius:10px; border:none;
+    font-size:1.1rem; background:#0f3460; color:var(--text);
+  }
+  input::placeholder{ color:var(--muted); }
+  button.primary{
+    width:100%; padding:14px; margin-top:8px; border:none; border-radius:10px;
+    background:var(--accent); color:white; font-size:1.1rem; font-weight:700;
+    cursor:pointer;
+  }
+  button.primary:disabled{ opacity:.4; cursor:not-allowed; }
+  button.secondary{
+    width:100%; padding:12px; margin-top:8px; border:none; border-radius:10px;
+    background:transparent; color:var(--muted); font-size:.95rem; cursor:pointer;
+  }
+  .pin-display{
+    text-align:center; font-size:clamp(2rem,10vw,3rem); letter-spacing:clamp(3px,2vw,8px);
+    font-weight:800; color:var(--accent); margin:12px 0; word-break:break-all;
+  }
+  .player-list{ display:flex; flex-wrap:wrap; gap:8px; margin-top:16px; }
+  .chip{ background:#0f3460; padding:8px 14px; border-radius:20px; font-size:.95rem; }
+  .question-text{ font-size:clamp(1.1rem,4.5vw,1.4rem); font-weight:700; margin-bottom:20px; text-align:center; }
+  .timer{ text-align:center; font-size:1.2rem; color:var(--accent); margin-bottom:16px; font-weight:700; }
+  .options{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .opt-btn{
+    padding:18px 8px; border-radius:12px; border:none; color:white; font-size:clamp(.9rem,3.5vw,1.05rem);
+    font-weight:600; cursor:pointer; min-height:64px;
+  }
+  .opt0{ background:#e94560; } .opt1{ background:#0f9b8e; }
+  .opt2{ background:#f2a541; } .opt3{ background:#3f72af; }
+  .opt-btn:disabled{ opacity:.5; cursor:not-allowed; }
+  .opt-btn.correct{ outline:4px solid #2ecc71; }
+  .opt-btn.incorrect{ outline:4px solid #7f1d1d; opacity:.5; }
+  .rank{ display:flex; justify-content:space-between; padding:10px 14px; background:#0f3460;
+    border-radius:10px; margin-bottom:8px; }
+  .rank .pos{ color:var(--accent); font-weight:800; margin-right:10px; }
+  .center{ text-align:center; }
+  .hidden{ display:none !important; }
+  .status-msg{ text-align:center; color:var(--muted); margin-top:20px; font-size:1.05rem; }
+  .footer-note{ text-align:center; color:var(--muted); font-size:.8rem; margin-top:18px; }
+
+  @media (max-width:420px){
+    body{ padding:10px; }
+    .card{ padding:18px; border-radius:12px; }
+    .options{ grid-template-columns:1fr; }
+    .role-buttons{ flex-direction:column; }
+  }
+  @media (prefers-color-scheme:light){
+    :root:not([data-theme="dark"]){
+      --bg:#eef1fb; --card:#ffffff; --text:#1a1a2e; --muted:#6b7280;
+    }
+    body{ background:linear-gradient(135deg,#eef1fb,#dfe6f7); }
+    input, .role-btn, .chip, .rank{ background:#f1f3fb; color:var(--text); }
+  }
+</style>
+</head>
+<body>
+
+<div class="box">
+  <h1>🎮 Preguntón</h1>
+  <p class="sub">Elige tu rol para empezar</p>
+  <div class="card">
+
+    <!-- PANTALLA DE CARGA -->
+    <div id="screen-loading">
+      <p class="center status-msg" id="loading-msg">Cargando configuración…</p>
+    </div>
+
+    <!-- PANTALLA DE SELECCIÓN DE ROL -->
+    <div id="screen-role" class="hidden">
+      <div class="role-buttons">
+        <button class="role-btn" onclick="showHostSetup()">👩‍🏫 Soy el Host<br><small style="font-weight:400;color:var(--muted)">(profesor)</small></button>
+        <button class="role-btn" onclick="showPlayerSetup()">🙋 Soy Jugador<br><small style="font-weight:400;color:var(--muted)">(alumno)</small></button>
+      </div>
+    </div>
+
+    <!-- HOST: CREAR PARTIDA -->
+    <div id="screen-host-setup" class="hidden">
+      <p class="center">Pulsa para crear una nueva partida</p>
+      <button class="primary" onclick="hostCreateGame()">Crear partida</button>
+      <button class="secondary" onclick="backToRole()">← Volver</button>
+    </div>
+
+    <!-- HOST: LOBBY -->
+    <div id="screen-host-lobby" class="hidden">
+      <p class="center sub">PIN de la partida</p>
+      <div class="pin-display" id="host-pin"></div>
+      <p class="center status-msg">Los alumnos deben entrar como "Jugador" e introducir este PIN</p>
+      <div class="player-list" id="host-player-list"></div>
+      <button class="primary" id="host-start-btn" onclick="hostStartGame()" disabled>Empezar (esperando jugadores...)</button>
+    </div>
+
+    <!-- HOST: PREGUNTA EN CURSO -->
+    <div id="screen-host-question" class="hidden">
+      <p class="center sub" id="host-q-counter"></p>
+      <div class="question-text" id="host-q-text"></div>
+      <p class="center status-msg" id="host-answer-count"></p>
+      <button class="primary" onclick="hostRevealAnswers()">Mostrar resultados</button>
+    </div>
+
+    <!-- HOST: REVELAR / RANKING -->
+    <div id="screen-host-reveal" class="hidden">
+      <p class="center sub">Ranking actual</p>
+      <div id="host-ranking"></div>
+      <button class="primary" id="host-next-btn" onclick="hostNextQuestion()">Siguiente pregunta</button>
+    </div>
+
+    <!-- HOST: FIN -->
+    <div id="screen-host-end" class="hidden">
+      <h2 class="center">🏆 Resultado final</h2>
+      <div id="host-final-ranking"></div>
+    </div>
+
+    <!-- PLAYER: UNIRSE -->
+    <div id="screen-player-setup" class="hidden">
+      <input type="text" id="player-pin" placeholder="PIN de la partida" maxlength="6" inputmode="numeric">
+      <input type="text" id="player-name" placeholder="Tu nombre" maxlength="20">
+      <button class="primary" onclick="playerJoin()">Unirse</button>
+      <button class="secondary" onclick="backToRole()">← Volver</button>
+      <p class="status-msg" id="player-join-error"></p>
+    </div>
+
+    <!-- PLAYER: ESPERANDO -->
+    <div id="screen-player-wait" class="hidden">
+      <p class="center status-msg">✅ ¡Dentro! Esperando a que el profesor empiece la partida…</p>
+    </div>
+
+    <!-- PLAYER: PREGUNTA -->
+    <div id="screen-player-question" class="hidden">
+      <div class="timer" id="player-timer"></div>
+      <div class="question-text" id="player-q-text"></div>
+      <div class="options" id="player-options"></div>
+    </div>
+
+    <!-- PLAYER: ESPERANDO RESULTADOS -->
+    <div id="screen-player-answered" class="hidden">
+      <p class="center status-msg">Respuesta enviada. Esperando al resto…</p>
+    </div>
+
+    <!-- PLAYER: RESULTADO DE LA PREGUNTA -->
+    <div id="screen-player-reveal" class="hidden">
+      <div class="center" id="player-feedback" style="font-size:1.5rem;font-weight:800;margin-bottom:10px;"></div>
+      <p class="center status-msg" id="player-score"></p>
+    </div>
+
+    <!-- PLAYER: FIN -->
+    <div id="screen-player-end" class="hidden">
+      <h2 class="center">🏁 Partida terminada</h2>
+      <p class="center status-msg" id="player-final-score"></p>
+    </div>
+
+  </div>
+</div>
+
+<!-- SDK de Firebase (versión compat, más sencilla de usar) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+
+<script>
+/* ============================================================
+   1) CONFIGURACIÓN DE FIREBASE Y PREGUNTAS — CARGA EXTERNA
+   Se leen en tiempo de ejecución desde dos archivos JSON que
+   deben estar en la MISMA carpeta que este HTML:
+     - firebase-config.json  → credenciales de tu proyecto Firebase
+     - questions.json        → las preguntas del quiz
+   Así puedes editar ambos sin tocar el código.
+   Ojo: al ser una página estática, estos JSON son tan públicos
+   como el propio HTML (cualquiera puede abrirlos con su URL).
+   ============================================================ */
+let firebaseConfig = null;
+let QUESTIONS = null;
+let db = null;
+
+async function loadConfigAndQuestions(){
+  const loadingMsg = document.getElementById('loading-msg');
+  try{
+    const [configRes, questionsRes] = await Promise.all([
+      fetch('firebase-config.json'),
+      fetch('questions.json')
+    ]);
+    if (!configRes.ok) throw new Error('No se pudo leer firebase-config.json');
+    if (!questionsRes.ok) throw new Error('No se pudo leer questions.json');
+
+    firebaseConfig = await configRes.json();
+    QUESTIONS = await questionsRes.json();
+
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.database();
+
+    show('screen-role');
+  } catch (err){
+    loadingMsg.textContent = '⚠️ Error al cargar la configuración: ' + err.message +
+      '. Revisa que firebase-config.json y questions.json existan junto a este HTML.';
+  }
+}
+
+window.addEventListener('DOMContentLoaded', loadConfigAndQuestions);
+
+/* ============================================================
+   3) LÓGICA DE NAVEGACIÓN ENTRE PANTALLAS
+   ============================================================ */
+function show(id){
+  document.querySelectorAll('.card > div').forEach(d => d.classList.add('hidden'));
+  document.getElementById(id).classList.remove('hidden');
+}
+function backToRole(){ show('screen-role'); }
+function showHostSetup(){ show('screen-host-setup'); }
+function showPlayerSetup(){ show('screen-player-setup'); }
+
+/* ============================================================
+   4) LADO HOST
+   ============================================================ */
+let hostPin = null;
+let hostGameRef = null;
+let hostQuestionIndex = 0;
+
+function generatePin(){ return String(Math.floor(1000 + Math.random()*9000)); }
+
+async function hostCreateGame(){
+  let pin;
+  // Nos aseguramos de que el PIN no exista ya
+  do { pin = generatePin(); }
+  while ((await db.ref('games/' + pin).get()).exists());
+
+  hostPin = pin;
+  hostGameRef = db.ref('games/' + pin);
+  await hostGameRef.set({
+    status: 'lobby',
+    currentQuestionIndex: -1,
+    questionStartTime: null,
+    players: {},
+    answers: {}
+  });
+
+  document.getElementById('host-pin').textContent = pin;
+  show('screen-host-lobby');
+  listenPlayers();
+}
+
+function listenPlayers(){
+  hostGameRef.child('players').on('value', snap => {
+    const players = snap.val() || {};
+    const list = document.getElementById('host-player-list');
+    list.innerHTML = '';
+    const names = Object.values(players).map(p => p.name);
+    names.forEach(n => {
+      const chip = document.createElement('div');
+      chip.className = 'chip';
+      chip.textContent = n;
+      list.appendChild(chip);
+    });
+    const startBtn = document.getElementById('host-start-btn');
+    startBtn.disabled = names.length === 0;
+    startBtn.textContent = names.length === 0
+      ? 'Empezar (esperando jugadores...)'
+      : `Empezar (${names.length} jugador${names.length>1?'es':''})`;
+  });
+}
+
+function hostStartGame(){
+  hostQuestionIndex = 0;
+  hostShowQuestion();
+}
+
+function hostShowQuestion(){
+  const q = QUESTIONS[hostQuestionIndex];
+  hostGameRef.update({
+    status: 'question',
+    currentQuestionIndex: hostQuestionIndex,
+    questionStartTime: firebase.database.ServerValue.TIMESTAMP
+  });
+  document.getElementById('host-q-counter').textContent =
+    `Pregunta ${hostQuestionIndex + 1} de ${QUESTIONS.length}`;
+  document.getElementById('host-q-text').textContent = q.text;
+  show('screen-host-question');
+  watchAnswerCount();
+}
+
+function watchAnswerCount(){
+  const answersRef = hostGameRef.child('answers/' + hostQuestionIndex);
+  const playersRef = hostGameRef.child('players');
+  const update = () => {
+    Promise.all([answersRef.get(), playersRef.get()]).then(([aSnap, pSnap]) => {
+      const answered = aSnap.exists() ? Object.keys(aSnap.val()).length : 0;
+      const total = pSnap.exists() ? Object.keys(pSnap.val()).length : 0;
+      document.getElementById('host-answer-count').textContent =
+        `${answered} de ${total} han respondido`;
+    });
+  };
+  answersRef.on('value', update);
+  update();
+}
+
+async function hostRevealAnswers(){
+  const q = QUESTIONS[hostQuestionIndex];
+  const [answersSnap, playersSnap] = await Promise.all([
+    hostGameRef.child('answers/' + hostQuestionIndex).get(),
+    hostGameRef.child('players').get()
+  ]);
+  const answers = answersSnap.val() || {};
+  const players = playersSnap.val() || {};
+  const qStart = (await hostGameRef.child('questionStartTime').get()).val() || 0;
+
+  const updates = {};
+  Object.entries(answers).forEach(([pid, a]) => {
+    if (a.choice === q.correct){
+      const elapsed = Math.max(0, (a.time || qStart) - qStart);
+      const timeFraction = Math.max(0, 1 - (elapsed / (q.time * 1000)));
+      const points = Math.round(500 + 500 * timeFraction);
+      const currentScore = (players[pid] && players[pid].score) || 0;
+      updates['players/' + pid + '/score'] = currentScore + points;
+    }
+  });
+  await hostGameRef.update(Object.assign({ status: 'reveal' }, updates));
+  renderHostRanking();
+  show('screen-host-reveal');
+}
+
+async function renderHostRanking(){
+  const playersSnap = await hostGameRef.child('players').get();
+  const players = Object.values(playersSnap.val() || {});
+  players.sort((a,b) => (b.score||0) - (a.score||0));
+  const container = document.getElementById('host-ranking');
+  container.innerHTML = '';
+  players.forEach((p, i) => {
+    const row = document.createElement('div');
+    row.className = 'rank';
+    row.innerHTML = `<span><span class="pos">#${i+1}</span>${p.name}</span><span>${p.score||0} pts</span>`;
+    container.appendChild(row);
+  });
+  document.getElementById('host-next-btn').textContent =
+    hostQuestionIndex < QUESTIONS.length - 1 ? 'Siguiente pregunta' : 'Ver resultado final';
+}
+
+function hostNextQuestion(){
+  hostQuestionIndex++;
+  if (hostQuestionIndex < QUESTIONS.length){
+    hostShowQuestion();
+  } else {
+    hostGameRef.update({ status: 'ended' });
+    renderHostFinal();
+  }
+}
+
+async function renderHostFinal(){
+  const playersSnap = await hostGameRef.child('players').get();
+  const players = Object.values(playersSnap.val() || {});
+  players.sort((a,b) => (b.score||0) - (a.score||0));
+  const container = document.getElementById('host-final-ranking');
+  container.innerHTML = '';
+  players.forEach((p, i) => {
+    const row = document.createElement('div');
+    row.className = 'rank';
+    row.innerHTML = `<span><span class="pos">#${i+1}</span>${p.name}</span><span>${p.score||0} pts</span>`;
+    container.appendChild(row);
+  });
+  show('screen-host-end');
+}
+
+/* ============================================================
+   5) LADO JUGADOR
+   ============================================================ */
+let playerPin = null;
+let playerId = null;
+let playerGameRef = null;
+let playerTimerInterval = null;
+let playerHasAnswered = false;
+
+function playerJoin(){
+  const pin = document.getElementById('player-pin').value.trim();
+  const name = document.getElementById('player-name').value.trim();
+  const errorEl = document.getElementById('player-join-error');
+  errorEl.textContent = '';
+
+  if (!pin || !name){
+    errorEl.textContent = 'Introduce el PIN y tu nombre.';
+    return;
+  }
+
+  db.ref('games/' + pin).get().then(snap => {
+    if (!snap.exists()){
+      errorEl.textContent = 'No existe ninguna partida con ese PIN.';
+      return;
+    }
+    playerPin = pin;
+    playerGameRef = db.ref('games/' + pin);
+    const newPlayerRef = playerGameRef.child('players').push();
+    playerId = newPlayerRef.key;
+    newPlayerRef.set({ name: name, score: 0 });
+    show('screen-player-wait');
+    listenGameState();
+  });
+}
+
+function listenGameState(){
+  playerGameRef.on('value', snap => {
+    const game = snap.val();
+    if (!game) return;
+
+    if (game.status === 'lobby'){
+      show('screen-player-wait');
+    }
+    else if (game.status === 'question'){
+      const alreadyAnswered = game.answers &&
+        game.answers[game.currentQuestionIndex] &&
+        game.answers[game.currentQuestionIndex][playerId];
+      if (!alreadyAnswered){
+        playerHasAnswered = false;
+        renderPlayerQuestion(game.currentQuestionIndex, game.questionStartTime);
+      } else {
+        show('screen-player-answered');
+      }
+    }
+    else if (game.status === 'reveal'){
+      clearInterval(playerTimerInterval);
+      renderPlayerReveal(game);
+    }
+    else if (game.status === 'ended'){
+      clearInterval(playerTimerInterval);
+      const me = game.players && game.players[playerId];
+      document.getElementById('player-final-score').textContent =
+        `Tu puntuación final: ${me ? me.score : 0} pts`;
+      show('screen-player-end');
+    }
+  });
+}
+
+function renderPlayerQuestion(index, startTime){
+  const q = QUESTIONS[index];
+  document.getElementById('player-q-text').textContent = q.text;
+  const optsContainer = document.getElementById('player-options');
+  optsContainer.innerHTML = '';
+  q.options.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'opt-btn opt' + i;
+    btn.textContent = opt;
+    btn.onclick = () => playerAnswer(index, i);
+    optsContainer.appendChild(btn);
+  });
+  show('screen-player-question');
+
+  clearInterval(playerTimerInterval);
+  const timerEl = document.getElementById('player-timer');
+  const endTime = (startTime || Date.now()) + q.time * 1000;
+  playerTimerInterval = setInterval(() => {
+    const remaining = Math.max(0, Math.ceil((endTime - Date.now()) / 1000));
+    timerEl.textContent = `⏱️ ${remaining}s`;
+    if (remaining <= 0){
+      clearInterval(playerTimerInterval);
+      if (!playerHasAnswered) show('screen-player-answered');
+    }
+  }, 250);
+}
+
+function playerAnswer(index, choice){
+  if (playerHasAnswered) return;
+  playerHasAnswered = true;
+  playerGameRef.child('answers/' + index + '/' + playerId).set({
+    choice: choice,
+    time: firebase.database.ServerValue.TIMESTAMP
+  });
+  show('screen-player-answered');
+}
+
+async function renderPlayerReveal(game){
+  const q = QUESTIONS[game.currentQuestionIndex];
+  const myAnswer = game.answers &&
+    game.answers[game.currentQuestionIndex] &&
+    game.answers[game.currentQuestionIndex][playerId];
+  const feedback = document.getElementById('player-feedback');
+
+  if (myAnswer && myAnswer.choice === q.correct){
+    feedback.textContent = '✅ ¡Correcto!';
+    feedback.style.color = '#2ecc71';
+  } else if (myAnswer){
+    feedback.textContent = '❌ Incorrecto';
+    feedback.style.color = '#e94560';
+  } else {
+    feedback.textContent = '⏰ No respondiste a tiempo';
+    feedback.style.color = 'var(--muted)';
+  }
+
+  const me = game.players && game.players[playerId];
+  document.getElementById('player-score').textContent =
+    `Puntuación total: ${me ? me.score : 0} pts`;
+  show('screen-player-reveal');
+}
+</script>
+</body>
+</html>
