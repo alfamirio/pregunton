@@ -1,0 +1,552 @@
+[
+  {
+    "text": "¿Qué papel desempeña el sistema operativo entre el hardware y el usuario?",
+    "options": [
+      "Ninguno, el usuario se comunica directamente con el hardware",
+      "Actúa de puente/intermediario entre el hardware y el usuario o las aplicaciones",
+      "Es simplemente una aplicación más",
+      "Solo gestiona la impresora"
+    ],
+    "correct": 1,
+    "time": 15
+  },
+  {
+    "text": "En la arquitectura en capas de un sistema operativo, ¿qué elemento está más cerca del hardware?",
+    "options": [
+      "Las aplicaciones de usuario",
+      "Los servicios del sistema",
+      "El núcleo (kernel)",
+      "La interfaz gráfica"
+    ],
+    "correct": 2,
+    "time": 15
+  },
+  {
+    "text": "¿Qué tipo de núcleo integra todas las funciones (procesos, memoria, drivers...) en un único bloque de código?",
+    "options": [
+      "Microkernel",
+      "Monolítico",
+      "Híbrido",
+      "Modular puro"
+    ],
+    "correct": 1,
+    "time": 15
+  },
+  {
+    "text": "¿Qué tipo de núcleo incluye solo lo mínimo imprescindible y ejecuta el resto de servicios como procesos independientes?",
+    "options": [
+      "Monolítico",
+      "Microkernel",
+      "Híbrido",
+      "Distribuido"
+    ],
+    "correct": 1,
+    "time": 15
+  },
+  {
+    "text": "¿Qué mecanismo utiliza una aplicación en modo usuario para pedir un servicio al kernel, como leer un archivo?",
+    "options": [
+      "Una llamada al sistema (system call)",
+      "Un driver directo",
+      "Una interrupción de hardware",
+      "Un acceso directo a memoria (DMA)"
+    ],
+    "correct": 0,
+    "time": 20
+  },
+  {
+    "text": "¿Cuántos GB de RAM puede direccionar aproximadamente como máximo una arquitectura de 32 bits?",
+    "options": [
+      "1 GB",
+      "4 GB",
+      "16 GB",
+      "64 GB"
+    ],
+    "correct": 1,
+    "time": 20
+  },
+  {
+    "text": "¿Qué arquitectura de procesador utilizan los chips Apple Silicon (M1, M2, M3...)?",
+    "options": [
+      "x86",
+      "x86-64 (AMD64)",
+      "ARM",
+      "RISC-V"
+    ],
+    "correct": 2,
+    "time": 15
+  },
+  {
+    "text": "¿Cuál es la primera fase de un plan de instalación de un sistema operativo?",
+    "options": [
+      "Configuración",
+      "Verificación",
+      "Planificación",
+      "Instalación"
+    ],
+    "correct": 2,
+    "time": 15
+  },
+  {
+    "text": "¿Qué tipo de instalación conserva los programas y datos de la versión anterior del sistema operativo?",
+    "options": [
+      "Instalación limpia",
+      "Actualización (upgrade)",
+      "Arranque dual",
+      "Instalación desatendida"
+    ],
+    "correct": 1,
+    "time": 15
+  },
+  {
+    "text": "¿Qué es una imagen ISO?",
+    "options": [
+      "Un tipo de partición",
+      "Un archivo que contiene una copia exacta del contenido de un disco de instalación",
+      "Un controlador de red",
+      "Un formato de compresión de vídeo"
+    ],
+    "correct": 1,
+    "time": 15
+  },
+  {
+    "text": "¿Para qué se utiliza la partición de swap en Linux?",
+    "options": [
+      "Como copia de seguridad automática",
+      "Como extensión de la memoria RAM en disco",
+      "Para almacenar el sistema operativo",
+      "Para guardar los controladores"
+    ],
+    "correct": 1,
+    "time": 15
+  },
+  {
+    "text": "¿Qué partición pequeña es necesaria para el arranque en sistemas UEFI?",
+    "options": [
+      "La partición swap",
+      "La partición /home",
+      "La partición de arranque EFI (ESP)",
+      "La partición MBR"
+    ],
+    "correct": 2,
+    "time": 15
+  },
+  {
+    "text": "¿Qué programa se encarga de localizar y cargar el sistema operativo en memoria tras encender el equipo?",
+    "options": [
+      "El kernel",
+      "El gestor de arranque (bootloader)",
+      "El BIOS/UEFI",
+      "El sistema de archivos"
+    ],
+    "correct": 1,
+    "time": 15
+  },
+  {
+    "text": "¿Qué firmware de la placa base realiza la comprobación inicial del hardware (POST) al encender el equipo?",
+    "options": [
+      "El kernel",
+      "El gestor de arranque",
+      "La BIOS/UEFI",
+      "El driver de red"
+    ],
+    "correct": 2,
+    "time": 15
+  },
+  {
+    "text": "¿Qué esquema de tabla de particiones está asociado normalmente a UEFI y se recomienda actualmente?",
+    "options": [
+      "MBR",
+      "GPT",
+      "FAT32",
+      "ext4"
+    ],
+    "correct": 1,
+    "time": 15
+  },
+  {
+    "text": "En un arranque dual (dual boot) entre Windows y Linux, ¿qué sistema operativo conviene instalar primero?",
+    "options": [
+      "Linux, porque detecta a Windows automáticamente",
+      "Windows, porque Linux suele detectarlo y añadirlo al menú de arranque",
+      "Es indiferente, no afecta al arranque",
+      "Ninguno, deben instalarse a la vez"
+    ],
+    "correct": 1,
+    "time": 20
+  },
+  {
+    "text": "Tras instalar un sistema operativo, la pantalla se queda en negro o con resolución incorrecta. ¿Cuál es la causa más probable?",
+    "options": [
+      "Un fallo en la fuente de alimentación",
+      "Un controlador gráfico no compatible o desactualizado",
+      "Un error en la partición swap",
+      "Una licencia caducada"
+    ],
+    "correct": 1,
+    "time": 20
+  },
+  {
+    "text": "¿Qué tipo de licencia de software libre obliga a que cualquier versión modificada se distribuya con la misma licencia y su código fuente disponible (copyleft fuerte)?",
+    "options": [
+      "MIT",
+      "BSD",
+      "GPL",
+      "Apache License 2.0"
+    ],
+    "correct": 2,
+    "time": 20
+  },
+  {
+    "text": "¿Cómo se denomina el software gratuito pero que no necesariamente es de código abierto ni modificable?",
+    "options": [
+      "Shareware",
+      "Freeware",
+      "Software de dominio público",
+      "Trial/Demo"
+    ],
+    "correct": 1,
+    "time": 15
+  },
+  {
+    "text": "¿Cuál es uno de los motivos principales para mantener actualizado un sistema operativo tras su instalación?",
+    "options": [
+      "Aumentar el tamaño del disco duro",
+      "Corregir vulnerabilidades de seguridad",
+      "Cambiar el idioma del sistema automáticamente",
+      "Eliminar la necesidad de copias de seguridad"
+    ],
+    "correct": 1,
+    "time": 15
+  },
+  {
+    "text": "¿Cuál de estas es una función del sistema operativo relacionada con la comunicación entre equipos?",
+    "options": [
+      "Gestión de red",
+      "Gestión de la ALU",
+      "Compilación de programas",
+      "Renderizado 3D"
+    ],
+    "correct": 0,
+    "time": 15
+  },
+  {
+    "text": "En la arquitectura en capas de un sistema operativo, ¿qué se sitúa justo por encima del núcleo (kernel)?",
+    "options": [
+      "El hardware",
+      "Los servicios del sistema",
+      "Las aplicaciones de usuario directamente",
+      "Nada, el kernel es la capa más externa"
+    ],
+    "correct": 1,
+    "time": 20
+  },
+  {
+    "text": "¿Qué tipo de núcleo combina un diseño modular con algunos servicios integrados por rendimiento, como en Windows NT o macOS?",
+    "options": [
+      "Monolítico",
+      "Microkernel",
+      "Híbrido",
+      "Distribuido"
+    ],
+    "correct": 2,
+    "time": 15
+  },
+  {
+    "text": "¿Qué modo de la CPU ejecuta las aplicaciones normales, con acceso restringido al hardware?",
+    "options": [
+      "Modo núcleo (kernel mode)",
+      "Modo usuario (user mode)",
+      "Modo seguro",
+      "Modo firmware"
+    ],
+    "correct": 1,
+    "time": 15
+  },
+  {
+    "text": "¿Qué componente del sistema operativo controla los periféricos a través de sus drivers?",
+    "options": [
+      "El gestor de procesos",
+      "El gestor de memoria",
+      "El gestor de dispositivos",
+      "El intérprete de comandos (shell)"
+    ],
+    "correct": 2,
+    "time": 15
+  },
+  {
+    "text": "¿Qué es la HCL (Hardware Compatibility List)?",
+    "options": [
+      "Un tipo de licencia de software",
+      "Una lista de modelos de hardware cuya compatibilidad garantiza el fabricante",
+      "Un protocolo de red",
+      "Un formato de partición"
+    ],
+    "correct": 1,
+    "time": 20
+  },
+  {
+    "text": "Además de cumplir los requisitos de 'potencia', ¿qué más necesita un componente hardware para funcionar bien con un sistema operativo?",
+    "options": [
+      "Un controlador (driver) compatible",
+      "Una licencia adicional",
+      "Estar fabricado por Intel",
+      "Nada más, con la potencia basta"
+    ],
+    "correct": 0,
+    "time": 20
+  },
+  {
+    "text": "¿Es posible instalar un sistema operativo de 32 bits en un procesador de 64 bits?",
+    "options": [
+      "Nunca es posible",
+      "Sí, generalmente, aunque no se aprovecha todo el potencial del procesador",
+      "Solo en macOS",
+      "Solo si el disco es SSD"
+    ],
+    "correct": 1,
+    "time": 20
+  },
+  {
+    "text": "¿Qué conjunto de instrucciones (arquitectura) utilizan procesadores como los de los smartphones o los Apple Silicon?",
+    "options": [
+      "CISC",
+      "RISC (ARM)",
+      "MIPS clásico",
+      "x87"
+    ],
+    "correct": 1,
+    "time": 20
+  },
+  {
+    "text": "A la hora de elegir un sistema operativo, ¿por qué es importante comprobar la compatibilidad de aplicaciones?",
+    "options": [
+      "Porque de nada sirve el 'mejor' sistema operativo si no puede ejecutar el software que se necesita",
+      "Porque todas las aplicaciones funcionan igual en cualquier sistema operativo",
+      "Porque solo afecta al precio de las licencias",
+      "No es un factor relevante en la elección"
+    ],
+    "correct": 0,
+    "time": 20
+  },
+  {
+    "text": "¿Cuál de estas es una característica típica de las distribuciones GNU/Linux frente a Windows?",
+    "options": [
+      "Suelen ser libres y gratuitas, y muy configurables",
+      "Solo funcionan en hardware Apple",
+      "Nunca se usan en servidores",
+      "Requieren siempre pago de licencia"
+    ],
+    "correct": 0,
+    "time": 15
+  },
+  {
+    "text": "¿Qué distingue al software libre del software propietario?",
+    "options": [
+      "El software libre siempre es de pago",
+      "El software libre permite usar, estudiar, modificar y compartir su código fuente",
+      "El software propietario no tiene fabricante",
+      "No hay ninguna diferencia real"
+    ],
+    "correct": 1,
+    "time": 20
+  },
+  {
+    "text": "Si una empresa depende de un programa de gestión que solo funciona en Windows, ¿qué factor pesará más al elegir el sistema operativo?",
+    "options": [
+      "El color de la interfaz",
+      "La compatibilidad con ese software de aplicación necesario",
+      "El número de fondos de pantalla disponibles",
+      "El nombre del sistema operativo"
+    ],
+    "correct": 1,
+    "time": 20
+  },
+  {
+    "text": "¿Cuál es la segunda fase de un plan de instalación de un sistema operativo, justo después de la planificación?",
+    "options": [
+      "Preparación",
+      "Verificación",
+      "Configuración",
+      "Actualización"
+    ],
+    "correct": 0,
+    "time": 15
+  },
+  {
+    "text": "¿Qué tipo de instalación se automatiza mediante un archivo de respuesta, sin intervención manual durante el proceso?",
+    "options": [
+      "Instalación limpia",
+      "Instalación desatendida",
+      "Arranque dual",
+      "Actualización (upgrade)"
+    ],
+    "correct": 1,
+    "time": 20
+  },
+  {
+    "text": "¿Qué método permite instalar un sistema operativo en varios equipos a la vez a través de la red?",
+    "options": [
+      "Instalación por red (PXE)",
+      "Instalación por USB únicamente",
+      "Actualización acumulativa",
+      "Formateo remoto"
+    ],
+    "correct": 0,
+    "time": 20
+  },
+  {
+    "text": "¿Qué diferencia a un usuario administrador de un usuario estándar en un sistema operativo?",
+    "options": [
+      "El administrador tiene permisos completos sobre el sistema; el estándar tiene permisos limitados",
+      "No hay ninguna diferencia real",
+      "El estándar puede instalar cualquier programa sin restricciones",
+      "El administrador no puede cambiar la configuración del sistema"
+    ],
+    "correct": 0,
+    "time": 15
+  },
+  {
+    "text": "¿Qué partición se suele crear en Linux para separar los datos personales del sistema operativo?",
+    "options": [
+      "/home",
+      "/etc",
+      "/var",
+      "La partición swap"
+    ],
+    "correct": 0,
+    "time": 15
+  },
+  {
+    "text": "¿Qué ocurre justo después de que la BIOS/UEFI realiza la comprobación inicial del hardware (POST)?",
+    "options": [
+      "Se apaga el equipo",
+      "Se ejecuta el gestor de arranque (bootloader)",
+      "Se abre el sistema de archivos directamente",
+      "Se instala automáticamente el sistema operativo"
+    ],
+    "correct": 1,
+    "time": 20
+  },
+  {
+    "text": "¿Qué gestor de arranque es habitual en GNU/Linux y muy flexible para arrancar varios sistemas operativos?",
+    "options": [
+      "Windows Boot Manager",
+      "GRUB",
+      "rEFInd",
+      "Secure Boot"
+    ],
+    "correct": 1,
+    "time": 15
+  },
+  {
+    "text": "En un equipo con un único sistema operativo instalado, ¿qué hace normalmente el gestor de arranque?",
+    "options": [
+      "Muestra siempre un menú de selección",
+      "Carga directamente ese sistema, sin mostrar ningún menú",
+      "Pide una contraseña de administrador",
+      "Formatea el disco cada vez"
+    ],
+    "correct": 1,
+    "time": 15
+  },
+  {
+    "text": "¿Qué riesgo existe al actualizar el sistema operativo propietario en un equipo configurado con arranque dual?",
+    "options": [
+      "Ninguno, las actualizaciones nunca afectan al arranque",
+      "Puede sobrescribir el gestor de arranque y dejar inaccesible el otro sistema operativo",
+      "Elimina automáticamente el otro sistema operativo del disco",
+      "Convierte el disco de GPT a MBR"
+    ],
+    "correct": 1,
+    "time": 20
+  },
+  {
+    "text": "¿Qué esquema de tabla de particiones tiene un límite de solo 4 particiones primarias?",
+    "options": [
+      "GPT",
+      "MBR",
+      "exFAT",
+      "NTFS"
+    ],
+    "correct": 1,
+    "time": 15
+  },
+  {
+    "text": "¿Cuál es una causa habitual de que no se detecte el disco duro durante la instalación de un sistema operativo?",
+    "options": [
+      "Falta de controlador de almacenamiento (RAID/NVMe)",
+      "El disco tiene demasiado espacio libre",
+      "El procesador es demasiado moderno",
+      "El teclado está mal configurado"
+    ],
+    "correct": 0,
+    "time": 20
+  },
+  {
+    "text": "¿Qué debe incluir, como mínimo, un buen registro de incidencias durante una instalación?",
+    "options": [
+      "Solo la fecha en que ocurrió",
+      "Descripción del problema, momento en que ocurrió, mensaje de error y solución aplicada",
+      "El nombre del técnico y nada más",
+      "El precio de la licencia del sistema operativo"
+    ],
+    "correct": 1,
+    "time": 20
+  },
+  {
+    "text": "¿Qué es una licencia de software?",
+    "options": [
+      "Un manual de instrucciones del programa",
+      "Un contrato que establece las condiciones de uso, copia, modificación y distribución del software",
+      "Un tipo de antivirus",
+      "Un formato de archivo comprimido"
+    ],
+    "correct": 1,
+    "time": 15
+  },
+  {
+    "text": "¿Qué licencia libre permite prácticamente cualquier uso, incluida su inclusión en software propietario, con solo mantener el aviso de copyright?",
+    "options": [
+      "GPL",
+      "MIT",
+      "Creative Commons",
+      "Ninguna licencia libre permite esto"
+    ],
+    "correct": 1,
+    "time": 20
+  },
+  {
+    "text": "¿Qué tipo de licencia se vende junto con un equipo concreto y normalmente no es transferible a otro equipo?",
+    "options": [
+      "Retail",
+      "Por volumen",
+      "OEM",
+      "Freeware"
+    ],
+    "correct": 2,
+    "time": 20
+  },
+  {
+    "text": "¿Qué consecuencia puede tener usar software sin la licencia adecuada (piratería)?",
+    "options": [
+      "Ninguna, mientras el software funcione bien",
+      "Consecuencias legales y mayores riesgos de seguridad",
+      "Solo un pequeño coste adicional al final del año",
+      "Una mejora automática del rendimiento"
+    ],
+    "correct": 1,
+    "time": 20
+  },
+  {
+    "text": "¿Qué tipo de actualización agrupa varios parches y correcciones en un único paquete?",
+    "options": [
+      "Actualización de funcionalidad",
+      "Actualización acumulativa",
+      "Cambio de versión (major upgrade)",
+      "Actualización de firmware únicamente"
+    ],
+    "correct": 1,
+    "time": 20
+  }
+]

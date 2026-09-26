@@ -1,4 +1,4 @@
 [
-  { "name": "RA1 - Fundamentos y sistemas de archivos", "file": "questions-ud1-fundamentos-fs.json" },
-  { "name": "RA2 - Instalación de sistemas operativos", "file": "questions-ud2-instalacion-so.json" }
+  { "name": "SMR - SOM - RA1 - Fundamentos y sistemas de archivos", "file": "smr-som-ra1-questions-ud1-fundamentos-fs.json" },
+  { "name": "SMR - SOM - RA2 - Instalación de sistemas operativos", "file": "smr-som-ra2-questions-ud2-instalacion-so.json" }
 ]
