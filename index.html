@@ -86,6 +86,16 @@
   .rank{ display:flex; justify-content:space-between; padding:10px 14px; background:#0f3460;
     border-radius:10px; margin-bottom:8px; }
   .rank .pos{ color:var(--accent); font-weight:800; margin-right:10px; }
+  .rank{ gap:10px; }
+  .rank > span:first-child{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0; }
+  .rank > span:last-child{ white-space:nowrap; }
+  /* Clasificación en dos columnas (se rellena la izquierda primero) */
+  .ranking-grid{ display:grid; grid-auto-flow:column; grid-template-columns:1fr 1fr; gap:8px 16px; }
+  .ranking-grid .rank{ margin-bottom:0; min-width:0; }
+  /* Opciones en la pantalla del host: solo se muestran, no se puede votar */
+  .host-opt{ display:flex; align-items:center; justify-content:center; text-align:center;
+    cursor:default; user-select:none; transition:opacity .2s, transform .2s; }
+  .host-opt.correct{ transform:scale(1.03); }
   .center{ text-align:center; }
   .hidden{ display:none !important; }
   .status-msg{ text-align:center; color:var(--muted); margin-top:20px; font-size:1.05rem; }
@@ -95,6 +105,10 @@
     body{ padding:10px; }
     .card{ padding:18px; border-radius:12px; }
     .options{ grid-template-columns:1fr; }
+    #host-options{ grid-template-columns:1fr 1fr; }
+    .ranking-grid{ gap:6px 8px; }
+    .rank{ font-size:.85rem; padding:8px 10px; gap:6px; }
+    .rank .pos{ margin-right:6px; }
     .role-buttons{ flex-direction:column; }
   }
 
@@ -195,22 +209,23 @@
     <!-- HOST: PREGUNTA EN CURSO -->
     <div id="screen-host-question" class="hidden">
       <p class="center sub" id="host-q-counter"></p>
+      <div class="timer" id="host-timer"></div>
       <div class="question-text" id="host-q-text"></div>
+      <div class="options" id="host-options"></div>
       <p class="center status-msg" id="host-answer-count"></p>
-      <button class="primary" onclick="hostRevealAnswers()">Mostrar resultados</button>
     </div>
 
-    <!-- HOST: REVELAR / RANKING -->
+    <!-- HOST: RANKING -->
     <div id="screen-host-reveal" class="hidden">
       <p class="center sub">Ranking actual</p>
-      <div id="host-ranking"></div>
-      <button class="primary" id="host-next-btn" onclick="hostNextQuestion()">Siguiente pregunta</button>
+      <div id="host-ranking" class="ranking-grid"></div>
+      <p class="center status-msg" id="host-next-countdown"></p>
     </div>
 
     <!-- HOST: FIN -->
     <div id="screen-host-end" class="hidden">
       <h2 class="center">🏆 Resultado final</h2>
-      <div id="host-final-ranking"></div>
+      <div id="host-final-ranking" class="ranking-grid"></div>
     </div>
 
     <!-- PLAYER: UNIRSE -->
@@ -499,7 +514,18 @@ function hostStartGame(){
   hostShowQuestion();
 }
 
+// Temporizadores del flujo automático del host (reloj, pausas, cuenta atrás)
+let hostTimerInterval = null;
+let hostFlowTimeouts = [];
+function hostClearFlow(){
+  clearInterval(hostTimerInterval);
+  hostFlowTimeouts.forEach(clearTimeout);
+  hostFlowTimeouts = [];
+}
+function hostLater(fn, ms){ hostFlowTimeouts.push(setTimeout(fn, ms)); }
+
 function hostShowQuestion(){
+  hostClearFlow();
   const q = QUESTIONS[hostQuestionIndex];
   hostGameRef.update({
     status: 'question',
@@ -509,8 +535,33 @@ function hostShowQuestion(){
   document.getElementById('host-q-counter').textContent =
     `Pregunta ${hostQuestionIndex + 1} de ${QUESTIONS.length}`;
   document.getElementById('host-q-text').textContent = q.text;
+
+  // Opciones solo visibles (div, no botones): el host no puede votar
+  const optsEl = document.getElementById('host-options');
+  optsEl.innerHTML = '';
+  q.options.forEach((opt, i) => {
+    const d = document.createElement('div');
+    d.className = 'opt-btn host-opt opt' + i;
+    d.textContent = opt;
+    optsEl.appendChild(d);
+  });
+
   show('screen-host-question');
   watchAnswerCount();
+
+  // Reloj del host
+  const timerEl = document.getElementById('host-timer');
+  const endTime = Date.now() + q.time * 1000;
+  const tick = () => {
+    const remaining = Math.max(0, Math.ceil((endTime - Date.now()) / 1000));
+    timerEl.textContent = `⏱️ ${remaining}s`;
+    if (remaining <= 0){
+      clearInterval(hostTimerInterval);
+      hostEndQuestion();
+    }
+  };
+  tick();
+  hostTimerInterval = setInterval(tick, 250);
 }
 
 function watchAnswerCount(){
@@ -528,7 +579,49 @@ function watchAnswerCount(){
   update();
 }
 
-async function hostRevealAnswers(){
+// Se llama cuando el reloj llega a 0: marca la respuesta correcta,
+// a los 3 s muestra la clasificación, y a los 5 s pasa a la siguiente pregunta.
+function hostEndQuestion(){
+  const q = QUESTIONS[hostQuestionIndex];
+  document.getElementById('host-timer').textContent = '⏰ ¡Tiempo!';
+  document.querySelectorAll('#host-options .host-opt').forEach((el, i) => {
+    if (i === q.correct){
+      el.classList.add('correct');
+      el.textContent = '✓ ' + el.textContent;
+    } else {
+      el.classList.add('incorrect');
+    }
+  });
+
+  // Pequeño margen para que lleguen respuestas enviadas justo al final
+  const scoring = (async () => {
+    await new Promise(r => setTimeout(r, 700));
+    await hostScoreQuestion();
+  })();
+
+  hostLater(async () => {
+    await scoring;
+    await renderHostRanking();
+    show('screen-host-reveal');
+    const isLast = hostQuestionIndex >= QUESTIONS.length - 1;
+    hostRankingCountdown(5, isLast);
+    hostLater(hostNextQuestion, 5000);
+  }, 3000);
+}
+
+function hostRankingCountdown(seconds, isLast){
+  const el = document.getElementById('host-next-countdown');
+  const end = Date.now() + seconds * 1000;
+  const tick = () => {
+    const r = Math.max(0, Math.ceil((end - Date.now()) / 1000));
+    el.textContent = `${isLast ? 'Resultado final' : 'Siguiente pregunta'} en ${r}s`;
+  };
+  tick();
+  clearInterval(hostTimerInterval);
+  hostTimerInterval = setInterval(tick, 250);
+}
+
+async function hostScoreQuestion(){
   const q = QUESTIONS[hostQuestionIndex];
   const [answersSnap, playersSnap] = await Promise.all([
     hostGameRef.child('answers/' + hostQuestionIndex).get(),
@@ -549,27 +642,40 @@ async function hostRevealAnswers(){
     }
   });
   await hostGameRef.update(Object.assign({ status: 'reveal' }, updates));
-  renderHostRanking();
-  show('screen-host-reveal');
+}
+
+// Pinta una clasificación en dos columnas (la izquierda se rellena primero)
+function fillRanking(container, players){
+  container.innerHTML = '';
+  container.classList.add('ranking-grid');
+  container.style.gridTemplateRows =
+    `repeat(${Math.max(1, Math.ceil(players.length / 2))}, auto)`;
+  players.forEach((p, i) => {
+    const row = document.createElement('div');
+    row.className = 'rank';
+    const left = document.createElement('span');
+    const pos = document.createElement('span');
+    pos.className = 'pos';
+    pos.textContent = '#' + (i + 1);
+    left.appendChild(pos);
+    left.appendChild(document.createTextNode(p.name));
+    const right = document.createElement('span');
+    right.textContent = (p.score || 0) + ' pts';
+    row.appendChild(left);
+    row.appendChild(right);
+    container.appendChild(row);
+  });
 }
 
 async function renderHostRanking(){
   const playersSnap = await hostGameRef.child('players').get();
   const players = Object.values(playersSnap.val() || {});
   players.sort((a,b) => (b.score||0) - (a.score||0));
-  const container = document.getElementById('host-ranking');
-  container.innerHTML = '';
-  players.forEach((p, i) => {
-    const row = document.createElement('div');
-    row.className = 'rank';
-    row.innerHTML = `<span><span class="pos">#${i+1}</span>${p.name}</span><span>${p.score||0} pts</span>`;
-    container.appendChild(row);
-  });
-  document.getElementById('host-next-btn').textContent =
-    hostQuestionIndex < QUESTIONS.length - 1 ? 'Siguiente pregunta' : 'Ver resultado final';
+  fillRanking(document.getElementById('host-ranking'), players);
 }
 
 function hostNextQuestion(){
+  hostClearFlow();
   hostQuestionIndex++;
   if (hostQuestionIndex < QUESTIONS.length){
     hostShowQuestion();
@@ -583,14 +689,7 @@ async function renderHostFinal(){
   const playersSnap = await hostGameRef.child('players').get();
   const players = Object.values(playersSnap.val() || {});
   players.sort((a,b) => (b.score||0) - (a.score||0));
-  const container = document.getElementById('host-final-ranking');
-  container.innerHTML = '';
-  players.forEach((p, i) => {
-    const row = document.createElement('div');
-    row.className = 'rank';
-    row.innerHTML = `<span><span class="pos">#${i+1}</span>${p.name}</span><span>${p.score||0} pts</span>`;
-    container.appendChild(row);
-  });
+  fillRanking(document.getElementById('host-final-ranking'), players);
   show('screen-host-end');
 }
 
