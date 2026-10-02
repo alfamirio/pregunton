@@ -41,7 +41,7 @@
       "Arranque, carga y apagado"
     ],
     "correct": 0,
-    "time": 20
+    "time": 15
   },
   {
     "text": "¿Cuántos dígitos distintos utiliza el sistema de numeración hexadecimal?",
@@ -52,7 +52,7 @@
       "16"
     ],
     "correct": 3,
-    "time": 15
+    "time": 10
   },
   {
     "text": "¿A qué número decimal equivale el binario 1011?",
@@ -63,7 +63,7 @@
       "13"
     ],
     "correct": 2,
-    "time": 25
+    "time": 15
   },
   {
     "text": "Para convertir un número entre binario y hexadecimal, los bits se agrupan de...",
@@ -74,7 +74,7 @@
       "8 en 8"
     ],
     "correct": 2,
-    "time": 20
+    "time": 15
   },
   {
     "text": "¿Qué codificación de caracteres es de longitud variable y puede representar prácticamente cualquier idioma?",
@@ -96,7 +96,7 @@
       "2048"
     ],
     "correct": 1,
-    "time": 15
+    "time": 10
   },
   {
     "text": "¿Cuál es la diferencia principal entre un programa y un proceso?",
@@ -162,7 +162,7 @@
       "APFS"
     ],
     "correct": 2,
-    "time": 15
+    "time": 10
   },
   {
     "text": "¿Qué operación crea la estructura del sistema de archivos (tabla de asignación, directorio raíz...) sobre una partición?",
@@ -228,7 +228,7 @@
       "El hardware solo existe en los servidores"
     ],
     "correct": 0,
-    "time": 15
+    "time": 20
   },
   {
     "text": "¿Qué es el firmware?",
@@ -239,7 +239,7 @@
       "Un periférico de entrada como el teclado"
     ],
     "correct": 1,
-    "time": 15
+    "time": 20
   },
   {
     "text": "¿Cómo se llaman las 'carreteras' internas que comunican la CPU, la memoria y los periféricos?",
@@ -261,7 +261,7 @@
       "La memoria caché"
     ],
     "correct": 1,
-    "time": 20
+    "time": 15
   },
   {
     "text": "¿Cuál de estas es una función del sistema operativo relacionada con los periféricos?",
@@ -283,7 +283,7 @@
       "Solo existe en teléfonos móviles"
     ],
     "correct": 1,
-    "time": 15
+    "time": 20
   },
   {
     "text": "¿Cuántos dígitos distintos utiliza el sistema de numeración octal?",
@@ -294,7 +294,7 @@
       "16"
     ],
     "correct": 1,
-    "time": 15
+    "time": 10
   },
   {
     "text": "¿A qué número decimal equivale el binario 100?",
@@ -305,7 +305,7 @@
       "8"
     ],
     "correct": 2,
-    "time": 20
+    "time": 10
   },
   {
     "text": "¿Cuántos caracteres puede representar el código ASCII clásico?",
@@ -316,7 +316,7 @@
       "65536"
     ],
     "correct": 1,
-    "time": 15
+    "time": 10
   },
   {
     "text": "¿Cuál es la principal limitación de ASCII frente a Unicode/UTF-8?",
@@ -338,7 +338,7 @@
       "1.048.576 bytes"
     ],
     "correct": 2,
-    "time": 20
+    "time": 15
   },
   {
     "text": "¿Por qué no coinciden exactamente 1 GB y 1 GiB?",
@@ -426,7 +426,7 @@
       "viaje.jpg"
     ],
     "correct": 2,
-    "time": 20
+    "time": 15
   },
   {
     "text": "La organización física del sistema de archivos se refiere a...",
@@ -459,7 +459,7 @@
       "FAT32"
     ],
     "correct": 2,
-    "time": 15
+    "time": 10
   },
   {
     "text": "¿Qué es una partición de un disco?",
@@ -481,7 +481,7 @@
       "La desfragmentación"
     ],
     "correct": 1,
-    "time": 20
+    "time": 15
   },
   {
     "text": "En sistemas tipo Windows/FAT-NTFS, ¿qué indica el atributo 'Sistema (S)' de un archivo?",
@@ -503,7 +503,7 @@
       "El tamaño del archivo más grande que contiene"
     ],
     "correct": 1,
-    "time": 25
+    "time": 20
   },
   {
     "text": "La extensión de un archivo (como .pdf o .exe)...",
@@ -525,7 +525,7 @@
       "Comprimirlo automáticamente"
     ],
     "correct": 1,
-    "time": 20
+    "time": 15
   },
   {
     "text": "¿Qué establece el principio de mínimo privilegio en la gestión de permisos?",
@@ -547,6 +547,556 @@
       "Son siempre gratuitos"
     ],
     "correct": 1,
+    "time": 20
+  },
+  {
+    "text": "Convierte el decimal 29 a binario.",
+    "options": [
+      "10111",
+      "11011",
+      "11110",
+      "11101"
+    ],
+    "correct": 3,
+    "time": 20
+  },
+  {
+    "text": "Convierte el decimal 25 a hexadecimal.",
+    "options": [
+      "91",
+      "1A",
+      "19",
+      "25"
+    ],
+    "correct": 2,
+    "time": 20
+  },
+  {
+    "text": "Convierte el decimal 255 a hexadecimal.",
+    "options": [
+      "EF",
+      "100",
+      "FE",
+      "FF"
+    ],
+    "correct": 3,
+    "time": 15
+  },
+  {
+    "text": "¿A qué número decimal equivale el binario 11111111?",
+    "options": [
+      "256",
+      "127",
+      "255",
+      "254"
+    ],
+    "correct": 2,
+    "time": 20
+  },
+  {
+    "text": "Convierte el hexadecimal D4 a binario (agrupando de 4 en 4 bits).",
+    "options": [
+      "0100 1101",
+      "1101 0010",
+      "1011 0100",
+      "1101 0100"
+    ],
+    "correct": 3,
+    "time": 20
+  },
+  {
+    "text": "Convierte el binario 1100 0101 a hexadecimal.",
+    "options": [
+      "5C",
+      "C3",
+      "B5",
+      "C5"
+    ],
+    "correct": 3,
+    "time": 20
+  },
+  {
+    "text": "Convierte el decimal 100 a binario.",
+    "options": [
+      "1001100",
+      "1100010",
+      "1100100",
+      "1100110"
+    ],
+    "correct": 2,
+    "time": 20
+  },
+  {
+    "text": "¿A qué número decimal equivale el binario 10101?",
+    "options": [
+      "19",
+      "25",
+      "21",
+      "23"
+    ],
+    "correct": 2,
+    "time": 20
+  },
+  {
+    "text": "Convierte el hexadecimal 2F a binario.",
+    "options": [
+      "0010 1111",
+      "1111 0010",
+      "0010 1110",
+      "0011 1111"
+    ],
+    "correct": 0,
+    "time": 20
+  },
+  {
+    "text": "En hexadecimal, ¿qué valor decimal representa la letra A como dígito?",
+    "options": [
+      "16",
+      "1",
+      "10",
+      "11"
+    ],
+    "correct": 2,
+    "time": 10
+  },
+  {
+    "text": "¿Cuántos bits utiliza el código ASCII clásico para cada carácter?",
+    "options": [
+      "8",
+      "4",
+      "16",
+      "7"
+    ],
+    "correct": 3,
+    "time": 10
+  },
+  {
+    "text": "Un archivo se llama «canción_ñandú.txt». ¿Qué codificación de caracteres permite guardar ese nombre sin problemas?",
+    "options": [
+      "Hexadecimal",
+      "Binario puro sin tabla",
+      "ASCII clásico de 7 bits",
+      "UTF-8 / Unicode"
+    ],
+    "correct": 3,
+    "time": 15
+  },
+  {
+    "text": "¿Cuántos bytes tiene exactamente 1 GiB?",
+    "options": [
+      "1.024",
+      "1.000.000.000 (10⁹)",
+      "1.073.741.824 (2³⁰)",
+      "1.048.576 (2²⁰)"
+    ],
+    "correct": 2,
+    "time": 15
+  },
+  {
+    "text": "Un disco duro de fabricante se anuncia como 500 GB (base 10). ¿Cuántos bytes tiene?",
+    "options": [
+      "500.000.000",
+      "524.288.000",
+      "536.870.912.000",
+      "500.000.000.000"
+    ],
+    "correct": 3,
+    "time": 20
+  },
+  {
+    "text": "Compras un disco de «500 GB» y Windows muestra unos 465 GB. ¿Por qué?",
+    "options": [
+      "El fabricante usa base 10 (1 GB = 10⁹ B) y Windows calcula en base 2 (1 GB = 2³⁰ B)",
+      "El disco viene defectuoso",
+      "Windows no sabe medir correctamente",
+      "El sistema de archivos se come el 7 % del disco siempre"
+    ],
+    "correct": 0,
+    "time": 20
+  },
+  {
+    "text": "¿Cuántos KiB hay en 2 MiB?",
+    "options": [
+      "2.097.152 KiB",
+      "2048 KiB",
+      "1024 KiB",
+      "2000 KiB"
+    ],
+    "correct": 1,
+    "time": 15
+  },
+  {
+    "text": "Según el SI (base 10), ¿cuántos bytes son 3 KB?",
+    "options": [
+      "3072",
+      "3.000.000",
+      "300",
+      "3000"
+    ],
+    "correct": 3,
+    "time": 10
+  },
+  {
+    "text": "Tienes un vídeo de 6 GB y un pendrive formateado en FAT32. ¿Qué ocurre al intentar copiarlo?",
+    "options": [
+      "Se copia sin problemas",
+      "Se copia solo la mitad del vídeo",
+      "No se puede copiar, porque FAT32 limita el tamaño máximo de archivo a 4 GB",
+      "Se copia pero comprimido automáticamente"
+    ],
+    "correct": 2,
+    "time": 20
+  },
+  {
+    "text": "¿Cuál de estos archivos se podría guardar en una unidad FAT32?",
+    "options": [
+      "Un backup de 8 GB",
+      "Una imagen de disco de 5 GB",
+      "Una película de 4,5 GB",
+      "Una película de 3,5 GB"
+    ],
+    "correct": 3,
+    "time": 15
+  },
+  {
+    "text": "Necesitas copiar un backup de 12 GB en un pendrive que se usará en Windows y en macOS. ¿Qué sistema de archivos eliges?",
+    "options": [
+      "exFAT",
+      "FAT32",
+      "ext4",
+      "APFS"
+    ],
+    "correct": 0,
+    "time": 15
+  },
+  {
+    "text": "Dado el árbol del tema, ¿cuál es la ruta absoluta de memoria.txt?",
+    "options": [
+      "/home/usuario2/memoria.txt",
+      "usuario2/memoria.txt",
+      "/memoria.txt",
+      "home/usuario2/memoria.txt"
+    ],
+    "correct": 0,
+    "time": 15
+  },
+  {
+    "text": "Estás en /home/alumno/. ¿Cuál es la ruta relativa a viaje.jpg?",
+    "options": [
+      "fotos/viaje.jpg",
+      "../fotos/viaje.jpg",
+      "alumno/fotos/viaje.jpg",
+      "/fotos/viaje.jpg"
+    ],
+    "correct": 0,
+    "time": 15
+  },
+  {
+    "text": "Estás en /home/alumno/fotos/. ¿Cuál es la ruta relativa a viaje.jpg?",
+    "options": [
+      "fotos/viaje.jpg",
+      "/viaje.jpg",
+      "../viaje.jpg",
+      "viaje.jpg"
+    ],
+    "correct": 3,
+    "time": 15
+  },
+  {
+    "text": "Estás en /home/alumno/fotos/. ¿Cuál es la ruta relativa a documento.txt?",
+    "options": [
+      "../../documento.txt",
+      "/documento.txt",
+      "../documento.txt",
+      "documento.txt"
+    ],
+    "correct": 2,
+    "time": 15
+  },
+  {
+    "text": "Estás en /home/alumno/. ¿Cuál es la ruta relativa a /home/usuario2/memoria.txt?",
+    "options": [
+      "../../usuario2/memoria.txt",
+      "../usuario2/memoria.txt",
+      "usuario2/memoria.txt",
+      "/usuario2/memoria.txt"
+    ],
+    "correct": 1,
+    "time": 15
+  },
+  {
+    "text": "Estás en /var/log/. ¿Cuál es la ruta relativa a /etc/config.cfg?",
+    "options": [
+      "../etc/config.cfg",
+      "/var/etc/config.cfg",
+      "../../etc/config.cfg",
+      "etc/config.cfg"
+    ],
+    "correct": 2,
+    "time": 20
+  },
+  {
+    "text": "En una ruta, ¿qué representa «..»?",
+    "options": [
+      "El directorio personal del usuario",
+      "El directorio raíz",
+      "El directorio actual",
+      "El directorio padre (el nivel inmediatamente superior)"
+    ],
+    "correct": 3,
+    "time": 15
+  },
+  {
+    "text": "En el árbol de directorios del tema, ¿cuántos archivos (nodos hoja) aparecen?",
+    "options": [
+      "4",
+      "8",
+      "5",
+      "6"
+    ],
+    "correct": 2,
+    "time": 15
+  },
+  {
+    "text": "Un editor de texto está esperando a que el usuario pulse una tecla. ¿En qué estado está el proceso?",
+    "options": [
+      "Nuevo",
+      "Listo",
+      "Bloqueado",
+      "En ejecución"
+    ],
+    "correct": 2,
+    "time": 15
+  },
+  {
+    "text": "A un proceso en ejecución se le acaba su turno de CPU (quantum). ¿A qué estado pasa?",
+    "options": [
+      "Listo",
+      "Bloqueado",
+      "Terminado",
+      "Nuevo"
+    ],
+    "correct": 0,
+    "time": 15
+  },
+  {
+    "text": "Un proceso bloqueado recibe por fin los datos del disco que esperaba. ¿A qué estado pasa?",
+    "options": [
+      "Terminado",
+      "Listo",
+      "Nuevo",
+      "En ejecución directamente"
+    ],
+    "correct": 1,
+    "time": 15
+  },
+  {
+    "text": "Abres dos ventanas independientes del mismo navegador. ¿Qué tienes en el sistema?",
+    "options": [
+      "Un programa y dos procesos, cada uno con su propio PID",
+      "Un programa que no es ningún proceso",
+      "Dos programas y un proceso",
+      "Un programa y un único proceso"
+    ],
+    "correct": 0,
+    "time": 20
+  },
+  {
+    "text": "Un ordenador con un solo núcleo ejecuta cinco aplicaciones y parece que funcionan «a la vez». ¿Qué técnica lo permite?",
+    "options": [
+      "Multitarea: el SO reparte el tiempo de CPU turnándolas rápidamente",
+      "Cada aplicación tiene su propia CPU",
+      "Se ejecutan realmente a la vez en la ALU",
+      "Las aplicaciones no se ejecutan, solo se muestran"
+    ],
+    "correct": 0,
+    "time": 20
+  },
+  {
+    "text": "¿Qué fase del ciclo de instrucción interpreta qué operación pide la instrucción captada?",
+    "options": [
+      "Captación",
+      "Escritura",
+      "Decodificación",
+      "Ejecución"
+    ],
+    "correct": 2,
+    "time": 15
+  },
+  {
+    "text": "Una instrucción pide sumar dos números. ¿Qué parte de la CPU realiza la suma?",
+    "options": [
+      "La Unidad de Control",
+      "El bus de datos",
+      "La ALU",
+      "El disco duro"
+    ],
+    "correct": 2,
+    "time": 15
+  },
+  {
+    "text": "Un archivo tiene permisos -rwxr-xr--. ¿Qué puede hacer el grupo?",
+    "options": [
+      "Leer, escribir y ejecutar",
+      "Solo leer",
+      "No puede hacer nada",
+      "Leer y ejecutar, pero no modificar"
+    ],
+    "correct": 3,
+    "time": 15
+  },
+  {
+    "text": "Un archivo tiene permisos -rw-r-----. ¿Qué pueden hacer los «otros» usuarios?",
+    "options": [
+      "Solo leer",
+      "Nada: no tienen ningún permiso",
+      "Leer y escribir",
+      "Leer y ejecutar"
+    ],
+    "correct": 1,
+    "time": 15
+  },
+  {
+    "text": "En ls -l aparece drwxr-xr-x. ¿Qué indica la «d» y qué pueden hacer los «otros»?",
+    "options": [
+      "Es un directorio; los otros pueden listarlo y acceder, pero no crear ni borrar archivos en él",
+      "Es un enlace; los otros pueden modificarlo",
+      "Es un archivo borrado; los otros no pueden hacer nada",
+      "Es un directorio; los otros pueden crear y borrar archivos"
+    ],
+    "correct": 0,
+    "time": 20
+  },
+  {
+    "text": "El archivo script.sh tiene permisos -rwxr-xr--. ¿Puede un usuario «otros» ejecutarlo?",
+    "options": [
+      "Sí, tiene permiso de ejecución",
+      "No, solo tiene permiso de lectura (r--)",
+      "Sí, porque tiene la extensión .sh",
+      "Sí, pero solo si es del grupo"
+    ],
+    "correct": 1,
+    "time": 20
+  },
+  {
+    "text": "Un directorio tiene permisos r-x para el grupo. ¿Qué puede hacer un miembro del grupo?",
+    "options": [
+      "No puede acceder",
+      "Crear y borrar archivos",
+      "Solo cambiar su nombre",
+      "Listar su contenido y acceder a él, pero no crear ni borrar archivos"
+    ],
+    "correct": 3,
+    "time": 20
+  },
+  {
+    "text": "¿Qué permite el permiso «w» sobre un directorio?",
+    "options": [
+      "Cambiar de propietario",
+      "Solo ver sus nombres",
+      "Crear y borrar archivos dentro de él",
+      "Ejecutarlo como programa"
+    ],
+    "correct": 2,
+    "time": 15
+  },
+  {
+    "text": "Un alumno solo necesita consultar unos apuntes compartidos. Aplicando el principio de mínimo privilegio, ¿qué permiso le das?",
+    "options": [
+      "Escritura (w)",
+      "Lectura, escritura y ejecución (rwx)",
+      "Solo lectura (r)",
+      "Control total"
+    ],
+    "correct": 2,
+    "time": 20
+  },
+  {
+    "text": "Quieres dar permiso de escritura a un único usuario concreto sin cambiar los permisos del grupo ni de otros. ¿Qué herramienta usas?",
+    "options": [
+      "Activar el journaling",
+      "Cambiar el atributo oculto",
+      "Formatear la partición",
+      "Una ACL (lista de control de acceso)"
+    ],
+    "correct": 3,
+    "time": 20
+  },
+  {
+    "text": "Quieres evitar que un archivo importante se modifique o borre por error. ¿Qué atributo activas?",
+    "options": [
+      "Sistema (S)",
+      "Solo lectura (R)",
+      "Archivo (A)",
+      "Oculto (H)"
+    ],
+    "correct": 1,
+    "time": 15
+  },
+  {
+    "text": "Una carpeta con archivos que suman 2 GB aparece con tamaño 4096 bytes en ls -l. ¿Por qué?",
+    "options": [
+      "Porque el comando está fallando",
+      "Porque el tamaño del directorio es el que ocupa la estructura con la lista de entradas, no la suma de su contenido",
+      "Porque 4096 es el tamaño máximo de una carpeta",
+      "Porque los archivos están comprimidos"
+    ],
+    "correct": 1,
+    "time": 20
+  },
+  {
+    "text": "Renombras foto.jpg como foto.txt. ¿Qué ocurre con el contenido real del archivo?",
+    "options": [
+      "Se borra",
+      "Sigue siendo una imagen: la extensión es solo una convención",
+      "Se comprime",
+      "Se convierte en texto"
+    ],
+    "correct": 1,
+    "time": 15
+  },
+  {
+    "text": "Se va la luz mientras se escribe un archivo en un disco con journaling. ¿Qué hace el sistema al reiniciar?",
+    "options": [
+      "Revisa siempre todos los sectores del disco",
+      "Formatea el disco",
+      "Ignora el fallo",
+      "Consulta el journal y completa o deshace las operaciones pendientes, sin revisar todo el disco"
+    ],
+    "correct": 3,
+    "time": 20
+  },
+  {
+    "text": "El principio de atomicidad de una transacción dice que la operación debe...",
+    "options": [
+      "Aplicarse solo a la mitad",
+      "Ejecutarse siempre dos veces",
+      "Completarse por entero o no aplicarse en absoluto",
+      "Hacerse sin registrarla en el journal"
+    ],
+    "correct": 2,
+    "time": 20
+  },
+  {
+    "text": "Según el tema, ¿cuál de estos sistemas de archivos NO tiene journaling?",
+    "options": [
+      "ext3",
+      "FAT32",
+      "NTFS",
+      "ext4"
+    ],
+    "correct": 1,
+    "time": 10
+  },
+  {
+    "text": "Tienes un disco nuevo. ¿Cuál es el orden correcto para dejarlo listo para usar?",
+    "options": [
+      "Formatear, particionar y asignar volumen",
+      "Asignar volumen, formatear y particionar",
+      "Desfragmentar, particionar y formatear",
+      "Particionar, formatear y asignar volumen (letra o punto de montaje)"
+    ],
+    "correct": 3,
     "time": 20
   }
 ]

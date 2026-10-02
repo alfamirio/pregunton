@@ -548,5 +548,555 @@
     ],
     "correct": 1,
     "time": 20
+  },
+  {
+    "text": "¿Qué función del sistema operativo controla qué usuarios existen y qué permisos tienen sobre los recursos?",
+    "options": [
+      "Gestión de la seguridad",
+      "Interfaz de usuario",
+      "Gestión de la memoria",
+      "Gestión de red"
+    ],
+    "correct": 0,
+    "time": 15
+  },
+  {
+    "text": "¿Qué es el shell o intérprete de comandos?",
+    "options": [
+      "Un tipo de núcleo del sistema operativo",
+      "El chip que guarda el firmware de la placa",
+      "El programa que particiona los discos",
+      "El componente que permite al usuario dar órdenes al sistema, en modo texto o integrado en el entorno gráfico"
+    ],
+    "correct": 3,
+    "time": 20
+  },
+  {
+    "text": "¿Qué ocurre en el modo núcleo (kernel mode) de la CPU?",
+    "options": [
+      "Solo se puede leer memoria, nunca escribir",
+      "Se ejecutan las aplicaciones normales con acceso restringido",
+      "Se tiene acceso total al hardware y es donde se ejecuta el propio sistema operativo",
+      "Se ejecuta únicamente el gestor de arranque"
+    ],
+    "correct": 2,
+    "time": 20
+  },
+  {
+    "text": "¿Por qué la CPU distingue entre modo usuario y modo núcleo?",
+    "options": [
+      "Para ahorrar memoria RAM",
+      "Para que las aplicaciones se ejecuten más rápido",
+      "Para poder instalar dos sistemas operativos",
+      "Para que un programa mal hecho o malicioso no pueda dañar directamente el hardware ni el resto del sistema"
+    ],
+    "correct": 3,
+    "time": 20
+  },
+  {
+    "text": "¿Qué tipo de núcleo emplean sistemas como Minix o QNX?",
+    "options": [
+      "Monolítico",
+      "No tienen núcleo",
+      "Microkernel",
+      "Híbrido"
+    ],
+    "correct": 2,
+    "time": 10
+  },
+  {
+    "text": "¿Qué diferencia hay entre los requisitos mínimos y los recomendados de un sistema operativo?",
+    "options": [
+      "Los mínimos bastan para que funcione (quizá lento o con limitaciones); los recomendados garantizan un funcionamiento fluido",
+      "Los mínimos son los de pago y los recomendados los gratuitos",
+      "Los recomendados solo afectan a la tarjeta gráfica",
+      "Son siempre idénticos"
+    ],
+    "correct": 0,
+    "time": 20
+  },
+  {
+    "text": "¿Qué es el TPM que exigen algunos sistemas operativos recientes?",
+    "options": [
+      "Un tipo de memoria RAM",
+      "Un formato de imagen ISO",
+      "Un gestor de arranque",
+      "Un chip de seguridad (Trusted Platform Module)"
+    ],
+    "correct": 3,
+    "time": 15
+  },
+  {
+    "text": "¿Qué hace el Secure Boot de UEFI?",
+    "options": [
+      "Verifica la firma digital del software de arranque",
+      "Cifra todo el disco automáticamente",
+      "Instala los controladores que faltan",
+      "Acelera el arranque del sistema"
+    ],
+    "correct": 0,
+    "time": 15
+  },
+  {
+    "text": "¿Para qué sirven herramientas como lshw (Linux) o dxdiag (Windows) antes de instalar?",
+    "options": [
+      "Para consultar información del hardware (CPU, RAM, discos, etc.)",
+      "Para reparar el gestor de arranque",
+      "Para activar las licencias",
+      "Para crear el USB de arranque"
+    ],
+    "correct": 0,
+    "time": 15
+  },
+  {
+    "text": "¿Qué caracteriza al software libre?",
+    "options": [
+      "Solo se puede usar en servidores",
+      "Permite usar, estudiar, modificar y compartir el código fuente",
+      "Siempre es de pago",
+      "No permite copiarlo bajo ninguna circunstancia"
+    ],
+    "correct": 1,
+    "time": 15
+  },
+  {
+    "text": "¿En qué hardware se puede instalar macOS?",
+    "options": [
+      "En cualquier dispositivo con procesador x64",
+      "Solo en servidores",
+      "Solo en hardware de Apple",
+      "En cualquier PC compatible"
+    ],
+    "correct": 2,
+    "time": 15
+  },
+  {
+    "text": "¿En qué fase del plan de instalación se instalan los controladores y se ajustan el idioma, la red y los usuarios?",
+    "options": [
+      "Planificación",
+      "Preparación",
+      "Configuración",
+      "Verificación"
+    ],
+    "correct": 2,
+    "time": 15
+  },
+  {
+    "text": "¿En qué fase del plan de instalación se hace la copia de seguridad de los datos y se prepara el soporte de instalación?",
+    "options": [
+      "Planificación",
+      "Verificación",
+      "Preparación",
+      "Configuración"
+    ],
+    "correct": 2,
+    "time": 15
+  },
+  {
+    "text": "¿En qué consiste una instalación limpia?",
+    "options": [
+      "Instalar el sistema desde cero, normalmente formateando el disco",
+      "Instalar sin usar ningún soporte",
+      "Actualizar conservando programas y datos",
+      "Instalar dos sistemas en el mismo equipo"
+    ],
+    "correct": 0,
+    "time": 15
+  },
+  {
+    "text": "¿Para qué resulta útil instalar un sistema operativo en una máquina virtual?",
+    "options": [
+      "Para hacer pruebas en un entorno aislado sin tocar el hardware real",
+      "Para sustituir al gestor de arranque",
+      "Para evitar tener que usar licencias",
+      "Para aumentar la RAM del equipo"
+    ],
+    "correct": 0,
+    "time": 15
+  },
+  {
+    "text": "¿Para qué se comprueba el checksum de una imagen ISO descargada?",
+    "options": [
+      "Para convertirla en USB de arranque",
+      "Para saber qué licencia tiene",
+      "Para verificar su integridad",
+      "Para comprimirla"
+    ],
+    "correct": 2,
+    "time": 15
+  },
+  {
+    "text": "Durante la instalación, ¿qué es el nombre del equipo (hostname)?",
+    "options": [
+      "El nombre de la imagen ISO",
+      "La partición donde se instala el sistema",
+      "El nombre del usuario administrador",
+      "El identificador del equipo en la red"
+    ],
+    "correct": 3,
+    "time": 15
+  },
+  {
+    "text": "Configurar la red básica con «IP automática (DHCP)» significa que...",
+    "options": [
+      "La dirección IP se la asigna automáticamente un servidor de la red",
+      "El equipo solo funcionará sin conexión",
+      "Hay que escribir la IP a mano",
+      "El equipo no tendrá IP"
+    ],
+    "correct": 0,
+    "time": 15
+  },
+  {
+    "text": "¿Qué gestor de arranque está integrado en Windows?",
+    "options": [
+      "rEFInd",
+      "Windows Boot Manager",
+      "GRUB",
+      "PXE"
+    ],
+    "correct": 1,
+    "time": 10
+  },
+  {
+    "text": "¿Qué es rEFInd?",
+    "options": [
+      "Un tipo de licencia libre",
+      "Una tabla de particiones",
+      "Un sistema de archivos de Linux",
+      "Un gestor de arranque gráfico para sistemas UEFI, útil con varios sistemas operativos"
+    ],
+    "correct": 3,
+    "time": 15
+  },
+  {
+    "text": "¿Qué realiza la BIOS/UEFI al encender el equipo antes de ceder el control al gestor de arranque?",
+    "options": [
+      "La instalación del sistema operativo",
+      "La copia de seguridad de los datos",
+      "La carga de las aplicaciones del usuario",
+      "La comprobación inicial del hardware (POST) y la localización del dispositivo de arranque"
+    ],
+    "correct": 3,
+    "time": 20
+  },
+  {
+    "text": "¿Cómo es la licencia MPL (Mozilla Public License)?",
+    "options": [
+      "Copyleft fuerte: todo el producto debe ser libre",
+      "Totalmente propietaria",
+      "Copyleft débil: solo afecta a los archivos modificados y se puede combinar con código propietario",
+      "Dominio público sin ningún aviso"
+    ],
+    "correct": 2,
+    "time": 15
+  },
+  {
+    "text": "¿Qué es el shareware?",
+    "options": [
+      "Software de dominio público",
+      "Software con prueba gratuita limitada, que requiere pago para la versión completa",
+      "Software que solo se vende con un equipo",
+      "Software con licencia GPL"
+    ],
+    "correct": 1,
+    "time": 15
+  },
+  {
+    "text": "¿Qué tipo de software no tiene derechos reservados y puede usarse y modificarse libremente?",
+    "options": [
+      "Licencia OEM",
+      "Trial / demo",
+      "Shareware",
+      "Dominio público"
+    ],
+    "correct": 3,
+    "time": 15
+  },
+  {
+    "text": "¿Cómo es una licencia retail?",
+    "options": [
+      "Viene ligada al equipo y no es transferible",
+      "Solo la pueden comprar los centros educativos",
+      "Es gratuita para empresas",
+      "Se compra por separado, es transferible y suele ser más cara que la OEM"
+    ],
+    "correct": 3,
+    "time": 15
+  },
+  {
+    "text": "¿Por qué conviene actualizar también el firmware de la placa base y otros dispositivos?",
+    "options": [
+      "Porque sustituye al sistema operativo",
+      "Porque es obligatorio para tener licencia",
+      "Porque el fabricante publica mejoras y correcciones que conviene aplicar cuando las recomienda",
+      "No conviene hacerlo nunca"
+    ],
+    "correct": 2,
+    "time": 20
+  },
+  {
+    "text": "¿Qué significa EULA?",
+    "options": [
+      "Extensión de Usuario para Linux y Android",
+      "Contrato de licencia de usuario final (End User License Agreement)",
+      "Estándar Universal de Licencias Abiertas",
+      "Entorno Unificado de Lectura Avanzada"
+    ],
+    "correct": 1,
+    "time": 15
+  },
+  {
+    "text": "Un equipo solo tiene un procesador de 32 bits. ¿Puedes instalarle un sistema operativo de 64 bits?",
+    "options": [
+      "Sí, siempre",
+      "No, un SO de 64 bits no se puede instalar en un procesador que solo soporta 32 bits",
+      "Sí, si añades más RAM",
+      "Sí, si usas una ISO más reciente"
+    ],
+    "correct": 1,
+    "time": 15
+  },
+  {
+    "text": "Un portátil tiene 8 GB de RAM y le instalas un sistema operativo de 32 bits. ¿Cuánta RAM podrá aprovechar aproximadamente?",
+    "options": [
+      "Unos 4 GB",
+      "Los 8 GB completos",
+      "Ninguna",
+      "Unos 2 GB"
+    ],
+    "correct": 0,
+    "time": 15
+  },
+  {
+    "text": "Quieres instalar Windows en un portátil con procesador ARM (Snapdragon). ¿Qué debes tener en cuenta?",
+    "options": [
+      "Vale cualquier instalador de x64 sin cambios",
+      "Necesitas la versión del sistema compilada para ARM, no vale la de x64",
+      "Solo hay que activar el Secure Boot",
+      "ARM solo funciona con Linux"
+    ],
+    "correct": 1,
+    "time": 20
+  },
+  {
+    "text": "Un sistema pide 20 GB libres. Tu disco de 120 GB tiene 105 GB ocupados. ¿Cumple el requisito de espacio?",
+    "options": [
+      "No: solo quedan 15 GB libres",
+      "No se puede saber",
+      "Sí: quedan 20 GB justos",
+      "Sí: quedan 25 GB libres"
+    ],
+    "correct": 0,
+    "time": 15
+  },
+  {
+    "text": "Un centro tiene 20 PCs antiguos, presupuesto cero para licencias y solo necesita ofimática. ¿Qué opción encaja mejor?",
+    "options": [
+      "Ninguna opción es viable",
+      "Windows 11 con licencias retail",
+      "macOS en los mismos equipos",
+      "Una distribución GNU/Linux ligera y libre"
+    ],
+    "correct": 3,
+    "time": 15
+  },
+  {
+    "text": "Debes instalar el mismo sistema en 30 equipos iguales de un aula, con la mínima intervención manual. ¿Qué tipo de instalación eliges?",
+    "options": [
+      "Instalación desatendida mediante un archivo de respuesta",
+      "Arranque dual",
+      "Instalación manual equipo a equipo",
+      "Actualización (upgrade)"
+    ],
+    "correct": 0,
+    "time": 20
+  },
+  {
+    "text": "Vas a crear la cuenta que usará a diario una persona de administración, que no necesita instalar programas. ¿Qué tipo de usuario es más adecuado?",
+    "options": [
+      "Siempre dos administradores",
+      "Usuario administrador",
+      "Usuario estándar",
+      "Ninguno, se usa sin cuenta"
+    ],
+    "correct": 2,
+    "time": 15
+  },
+  {
+    "text": "En Linux quieres poder reinstalar el sistema sin perder los datos personales de los usuarios. ¿Qué particionado ayuda?",
+    "options": [
+      "Una partición EFI más grande",
+      "Solo una partición swap",
+      "Una única partición para todo",
+      "Una partición /home separada de la del sistema (/)"
+    ],
+    "correct": 3,
+    "time": 15
+  },
+  {
+    "text": "Instalaste Linux y después Windows. Ahora el equipo arranca directamente en Windows sin mostrar menú. ¿Qué ha pasado y cómo se arregla?",
+    "options": [
+      "El disco está lleno; hay que cambiarlo",
+      "Windows ha sobrescrito el gestor de arranque; se repara reinstalando GRUB (p. ej. grub-install)",
+      "Es normal, GRUB nunca aparece tras instalar Windows",
+      "Linux se ha borrado; hay que reinstalar la BIOS"
+    ],
+    "correct": 1,
+    "time": 20
+  },
+  {
+    "text": "Un disco de 3 TB se usa con BIOS y tabla MBR. ¿Qué espacio podrás aprovechar aproximadamente?",
+    "options": [
+      "Los 3 TB completos",
+      "Unos 4 TB",
+      "Unos 2 TB",
+      "Unos 500 GB"
+    ],
+    "correct": 2,
+    "time": 15
+  },
+  {
+    "text": "Necesitas crear 6 particiones primarias en un disco con tabla MBR. ¿Es posible?",
+    "options": [
+      "No, ningún esquema lo permite",
+      "No: MBR admite solo 4 primarias; con GPT el número es prácticamente ilimitado",
+      "Sí, MBR admite hasta 10",
+      "Sí, pero solo en modo UEFI sin Secure Boot"
+    ],
+    "correct": 1,
+    "time": 20
+  },
+  {
+    "text": "El equipo no arranca desde el USB de instalación y sigue iniciando el disco duro. ¿Qué revisas primero?",
+    "options": [
+      "El orden de arranque en la BIOS/UEFI (y que el USB esté bien creado)",
+      "El tamaño de la partición swap",
+      "La licencia del sistema",
+      "El hostname del equipo"
+    ],
+    "correct": 0,
+    "time": 15
+  },
+  {
+    "text": "Tras instalar el sistema no hay conexión de red. ¿Cuál es la causa más probable y la solución?",
+    "options": [
+      "Falta una partición swap; hay que crearla",
+      "Falta el controlador de la tarjeta de red; hay que descargarlo e instalarlo",
+      "La ISO es de 32 bits; hay que cambiar de procesador",
+      "El gestor de arranque está dañado; hay que reinstalarlo"
+    ],
+    "correct": 1,
+    "time": 20
+  },
+  {
+    "text": "El instalador no detecta el disco NVMe del equipo. ¿Qué solución plantea el tema?",
+    "options": [
+      "Desactivar la zona horaria",
+      "Cargar el controlador de almacenamiento adicional durante la instalación",
+      "Instalar solo la partición swap",
+      "Cambiar el hostname"
+    ],
+    "correct": 1,
+    "time": 15
+  },
+  {
+    "text": "La instalación se bloquea al copiar archivos y la ISO se descargó de una web poco fiable. ¿Qué compruebas antes de descartar otras causas?",
+    "options": [
+      "El color del escritorio",
+      "El número de usuarios estándar",
+      "La resolución de pantalla",
+      "La integridad de la ISO mediante su checksum"
+    ],
+    "correct": 3,
+    "time": 20
+  },
+  {
+    "text": "Una empresa compra una licencia de un programa para un equipo y quiere instalarlo en otros 9. ¿Qué ocurre?",
+    "options": [
+      "Es legal porque ya pagó una vez",
+      "Es legal si los equipos están en la misma oficina",
+      "Incumple la licencia por superar el número de instalaciones permitidas",
+      "Es legal si usa la misma clave de ordenador"
+    ],
+    "correct": 2,
+    "time": 20
+  },
+  {
+    "text": "Un instituto necesita licenciar 200 equipos de forma conjunta. ¿Qué tipo de licencia es la más adecuada?",
+    "options": [
+      "OEM individual en cada equipo",
+      "Dominio público",
+      "Licencia por volumen",
+      "Retail suelta para cada equipo"
+    ],
+    "correct": 2,
+    "time": 15
+  },
+  {
+    "text": "Tu portátil traía Windows preinstalado con licencia OEM y se ha estropeado. ¿Puedes pasar esa licencia a otro PC?",
+    "options": [
+      "No, una licencia OEM va vinculada al equipo y no es transferible",
+      "Sí, pagando una cuota anual",
+      "Sí, si es un portátil de la misma marca",
+      "Sí, siempre"
+    ],
+    "correct": 0,
+    "time": 20
+  },
+  {
+    "text": "Vas a actualizar un servidor en producción a una versión mayor del sistema. ¿Qué conviene hacer antes?",
+    "options": [
+      "Desinstalar todas las aplicaciones",
+      "Desactivar el gestor de arranque",
+      "Actualizar directamente en horario de máxima actividad",
+      "Hacer copia de seguridad, comprobar la compatibilidad de las aplicaciones críticas y probar en un entorno de pruebas"
+    ],
+    "correct": 3,
+    "time": 20
+  },
+  {
+    "text": "Modificas un programa con licencia GPL y lo distribuyes a terceros. ¿Qué estás obligado a hacer?",
+    "options": [
+      "Cobrar siempre por él",
+      "Distribuirlo con la misma licencia GPL y con el código fuente disponible",
+      "Ocultar el código fuente",
+      "Nada, puedes cerrarlo"
+    ],
+    "correct": 1,
+    "time": 15
+  },
+  {
+    "text": "Quieres incluir en un producto propietario una librería con licencia MIT. ¿Qué exige la licencia?",
+    "options": [
+      "Pagar royalties al autor",
+      "Solo mantener el aviso de copyright",
+      "Publicar todo el código del producto",
+      "Cambiar el producto a licencia GPL"
+    ],
+    "correct": 1,
+    "time": 15
+  },
+  {
+    "text": "Un driver defectuoso hace caer todo el sistema operativo porque el núcleo lo ejecuta integrado con el resto. ¿Qué tipo de núcleo describe esto?",
+    "options": [
+      "Un núcleo que no usa drivers",
+      "Monolítico",
+      "Ninguno: eso es imposible",
+      "Microkernel"
+    ],
+    "correct": 1,
+    "time": 15
+  },
+  {
+    "text": "Ordena correctamente el proceso de arranque de un equipo:",
+    "options": [
+      "BIOS/UEFI (POST) → gestor de arranque → carga del kernel → equipo listo",
+      "Kernel → BIOS/UEFI → gestor de arranque → equipo listo",
+      "Gestor de arranque → BIOS/UEFI → kernel → equipo listo",
+      "BIOS/UEFI → kernel → gestor de arranque → equipo listo"
+    ],
+    "correct": 0,
+    "time": 20
   }
 ]
