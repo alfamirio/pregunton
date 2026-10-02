@@ -81,7 +81,16 @@
   .options{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
   .opt-btn{
     padding:18px 8px; border-radius:12px; border:none; color:white; font-size:clamp(.9rem,3.5vw,1.05rem);
-    font-weight:600; cursor:pointer; min-height:64px;
+    font-weight:600; cursor:pointer; min-height:64px; position:relative;
+  }
+  /* Letra de la opción (A, B, C, D) en la esquina superior izquierda.
+     Es un pseudo-elemento: no se pierde aunque el texto del botón cambie (✓, ✗...). */
+  .opt-btn[data-letter]::before{
+    content:attr(data-letter); position:absolute; top:6px; left:6px;
+    min-width:1.7em; height:1.7em; padding:0 .3em; box-sizing:border-box;
+    display:flex; align-items:center; justify-content:center;
+    background:rgba(0,0,0,.28); color:#fff; border-radius:8px;
+    font-size:.8em; font-weight:800; line-height:1;
   }
   .opt0{ background:#e94560; } .opt1{ background:#0f9b8e; }
   .opt2{ background:#f2a541; } .opt3{ background:#3f72af; }
@@ -143,7 +152,7 @@
 
   /* Interfaz más grande en pantallas de escritorio, para todas las tarjetas */
   @media (min-width:700px){
-    .box{ max-width:900px; }
+    .box{ max-width:1100px; }
     .card{ padding:40px; border-radius:20px; }
     h1{ font-size:2.4rem; }
     p.sub{ font-size:1.15rem; margin-bottom:32px; }
@@ -204,7 +213,7 @@
       --bg:#eef1fb; --card:#ffffff; --text:#1a1a2e; --muted:#6b7280;
     }
     body{ background:linear-gradient(135deg,#eef1fb,#dfe6f7); }
-    input, select, .role-btn, .chip, .rank, .review-item, .room-item{ background:#f1f3fb; color:var(--text); }
+    input, select, .role-btn, .chip, .rank, .review-item, .room-item, .player-tag span{ background:#f1f3fb; color:var(--text); }
     select{ background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'></polyline></svg>"); background-repeat:no-repeat; background-position:right 14px center; background-size:18px; }
     select option{ background:#ffffff; color:var(--text); }
   }
@@ -308,9 +317,9 @@
 
     <!-- HOST: RANKING -->
     <div id="screen-host-reveal" class="hidden">
+      <div class="timer" id="host-reveal-timer"></div>
       <p class="center sub">Ranking actual</p>
       <div id="host-ranking" class="ranking-grid"></div>
-      <p class="center status-msg" id="host-next-countdown"></p>
     </div>
 
     <!-- HOST: FIN -->
@@ -372,13 +381,18 @@
     <div id="screen-player-reveal" class="hidden">
       <div class="player-tag"><span></span></div>
       <div class="player-qcount"></div>
+      <div class="timer" id="player-reveal-timer"></div>
       <div class="center" id="player-feedback" style="font-size:1.5rem;font-weight:800;margin-bottom:6px;"></div>
       <p class="center status-msg" id="player-score" style="margin-top:0;color:var(--text);font-weight:700"></p>
-      <h3 class="player-ranking-title">🏆 Clasificación</h3>
-      <div id="player-ranking"></div>
-      <h3 class="player-ranking-title">Respuesta correcta</h3>
-      <div class="question-text" id="player-reveal-q"></div>
-      <div class="options" id="player-reveal-options"></div>
+      <div id="player-reveal-ranking-block">
+        <h3 class="player-ranking-title">🏆 Clasificación</h3>
+        <div id="player-ranking"></div>
+      </div>
+      <div id="player-reveal-answers-block">
+        <h3 class="player-ranking-title">Respuesta correcta</h3>
+        <div class="question-text" id="player-reveal-q"></div>
+        <div class="options" id="player-reveal-options"></div>
+      </div>
     </div>
 
     <!-- PLAYER: FIN -->
@@ -497,6 +511,7 @@ document.addEventListener('DOMContentLoaded', initDifficultySelect);
 let firebaseConfig = null;
 let serverTimeOffset = 0;   // diferencia entre el reloj de este dispositivo y el de Firebase
 let QUESTIONS = null;
+const OPTION_LETTERS = ['A', 'B', 'C', 'D', 'E', 'F'];
 let db = null;
 let quizSets = [];          // [{name, file}] del manifiesto, si existe
 let uploadedQuestions = null; // preguntas cargadas desde archivo local
@@ -1025,6 +1040,8 @@ function hostShowQuestion(){
   const q = QUESTIONS[hostQuestionIndex];
   const qIdx = hostQuestionIndex;
   const startWrite = hostGameRef.update({
+    phase: null,
+    phaseEnd: null,
     status: 'question',
     currentQuestionIndex: hostQuestionIndex,
     questionStartTime: firebase.database.ServerValue.TIMESTAMP
@@ -1039,6 +1056,7 @@ function hostShowQuestion(){
   q.options.forEach((opt, i) => {
     const d = document.createElement('div');
     d.className = 'opt-btn host-opt opt' + i;
+    d.dataset.letter = OPTION_LETTERS[i];
     d.textContent = opt;
     optsEl.appendChild(d);
   });
@@ -1075,6 +1093,7 @@ function hostShowQuestion(){
 let hostAnswersRef = null;
 let hostAnswersListener = null;
 let hostQuestionEnded = false;
+let hostAnswersPhaseEnd = null;   // hora (servidor) en que termina la cuenta atrás hasta la clasificación
 
 function stopWatchingAnswers(){
   if (hostAnswersRef && hostAnswersListener) hostAnswersRef.off('value', hostAnswersListener);
@@ -1113,8 +1132,17 @@ function hostEndQuestion(early){
   clearInterval(hostTimerInterval);
   stopWatchingAnswers();
   const q = QUESTIONS[hostQuestionIndex];
-  document.getElementById('host-timer').textContent =
-    early ? '✅ ¡Todos han respondido!' : '⏰ ¡Tiempo!';
+  const endLabel = early ? '✅ ¡Todos han respondido!' : '⏰ ¡Tiempo!';
+  // Reloj de la cuenta atrás hasta la clasificación (RESULT_DELAY_MS)
+  hostAnswersPhaseEnd = serverNow() + CONFIG.RESULT_DELAY_MS;
+  const phaseEnd = hostAnswersPhaseEnd;
+  const timerEl = document.getElementById('host-timer');
+  const tickEnd = () => {
+    const r = Math.max(0, Math.ceil((phaseEnd - serverNow()) / 1000));
+    timerEl.textContent = `${endLabel} · ⏱️ ${r}s`;
+  };
+  tickEnd();
+  hostTimerInterval = setInterval(tickEnd, CONFIG.TICK_MS);
 
   document.querySelectorAll('#host-options .host-opt').forEach((el, i) => {
     if (i === q.correct){
@@ -1136,18 +1164,19 @@ function hostEndQuestion(early){
     await scoring;
     await renderHostRanking();
     show('screen-host-reveal');
-    const isLast = hostQuestionIndex >= QUESTIONS.length - 1;
-    hostRankingCountdown(CONFIG.RANKING_DURATION_MS, isLast);
+    // Los jugadores pasan a ver la clasificación y su propia cuenta atrás
+    hostGameRef.update({ phase: 'ranking', phaseEnd: serverNow() + CONFIG.RANKING_DURATION_MS }).catch(() => {});
+    hostRankingCountdown(CONFIG.RANKING_DURATION_MS);
     hostLater(hostNextQuestion, CONFIG.RANKING_DURATION_MS);
   }, CONFIG.RESULT_DELAY_MS);
 }
 
-function hostRankingCountdown(ms, isLast){
-  const el = document.getElementById('host-next-countdown');
+function hostRankingCountdown(ms){
   const end = serverNow() + ms;
+  const clockEl = document.getElementById('host-reveal-timer');
   const tick = () => {
     const r = Math.max(0, Math.ceil((end - serverNow()) / 1000));
-    el.textContent = `${isLast ? 'Resultado final' : 'Siguiente pregunta'} en ${r}s`;
+    clockEl.textContent = `⏱️ ${r}s`;
   };
   tick();
   clearInterval(hostTimerInterval);
@@ -1186,9 +1215,15 @@ async function hostScoreQuestion(){
     }
   });
   hostQuestionResults[hostQuestionIndex] = results;
-  updates['results/' + hostQuestionIndex] = results;   // los jugadores lo usan para su ranking
+  // Los jugadores usan estos resultados para las marcas de su ranking. Se escriben aparte:
+  // si fallaran (reglas de Firebase), no impiden que la partida avance.
+  hostGameRef.child('results/' + hostQuestionIndex).set(results).catch(() => {});
 
-  await hostGameRef.update(Object.assign({ status: 'reveal' }, updates));
+  await hostGameRef.update(Object.assign({
+    status: 'reveal',
+    phase: 'answers',
+    phaseEnd: hostAnswersPhaseEnd
+  }, updates));
 }
 
 // Estadísticas de un jugador sobre las primeras `played` preguntas
@@ -1218,7 +1253,7 @@ function fillRanking(container, players, played, opts){
   container.style.gridTemplateRows =
     `repeat(${Math.max(1, Math.ceil(players.length / cols))}, auto)`;
   players.forEach((p, i) => {
-    const st = playerStats(p.id, played, opts.results);
+    const st = playerStats(p.id, played, opts.results);   // sin resultados (noStats) solo se muestra puntos
     const row = document.createElement('div');
     row.className = 'rank' + (opts.meId && p.id === opts.meId ? ' me' : '');
 
@@ -1253,8 +1288,10 @@ function fillRanking(container, players, played, opts){
     });
 
     row.appendChild(top);
-    row.appendChild(meta);
-    row.appendChild(marks);
+    if (!opts.noStats){
+      row.appendChild(meta);
+      row.appendChild(marks);
+    }
     container.appendChild(row);
   });
 }
@@ -1280,7 +1317,7 @@ function hostNextQuestion(){
   if (hostQuestionIndex < QUESTIONS.length){
     hostShowQuestion();
   } else {
-    hostGameRef.update({ status: 'ended' });
+    hostGameRef.update({ status: 'ended', phase: null, phaseEnd: null });
     renderHostFinal();
   }
 }
@@ -1339,6 +1376,7 @@ function showHostReview(){
     it.q.options.forEach((opt, i) => {
       const d = document.createElement('div');
       d.className = 'opt-btn opt' + i + (i === it.q.correct ? ' correct' : ' incorrect');
+      d.dataset.letter = OPTION_LETTERS[i];
       d.textContent = (i === it.q.correct ? '✓ ' : '') + opt;
       opts.appendChild(d);
     });
@@ -1358,6 +1396,7 @@ function showHostReview(){
    ============================================================ */
 let playerPin = null;
 let playerId = null;
+let playerRevealInterval = null;
 let playerShownQuestion = -1;   // índice de la pregunta ya dibujada (evita redibujar con cada respuesta ajena)
 function setPlayerTag(name){
   document.querySelectorAll('.player-tag span').forEach(el => { el.textContent = '👤 ' + name; });
@@ -1586,6 +1625,8 @@ function listenGameState(){
       QUESTIONS = game.questions;
     }
 
+    clearInterval(playerRevealInterval);   // el reloj de la pantalla de resultados se recrea si hace falta
+
     // "Pregunta k de n" bajo el nombre
     if (typeof game.currentQuestionIndex === 'number' && game.currentQuestionIndex >= 0 && QUESTIONS){
       const txt = `Pregunta ${game.currentQuestionIndex + 1} de ${QUESTIONS.length}`;
@@ -1634,6 +1675,7 @@ function renderPlayerQuestion(index, startTime){
   q.options.forEach((opt, i) => {
     const btn = document.createElement('button');
     btn.className = 'opt-btn opt' + i;
+    btn.dataset.letter = OPTION_LETTERS[i];
     btn.textContent = opt;
     btn.onclick = () => playerAnswer(index, i);
     optsContainer.appendChild(btn);
@@ -1679,9 +1721,8 @@ function renderPlayerRanking(container, game, played){
   const mine = all.find(p => p.id === playerId);
   const extra = mine && mine.pos > CONFIG.PLAYER_RANKING_TOP;
   const cols = window.innerWidth >= CONFIG.RANKING_WIDE_MIN_PX ? 2 : 1;
-  const results = game.results || {};
   fillRanking(container, extra ? top.concat([mine]) : top, played,
-    { cols: cols, meId: playerId, results: results });
+    { cols: cols, meId: playerId, results: game.results || {}, noStats: !game.results });
   // la fila propia (última) se separa visualmente del resto con una línea discontinua
   if (extra && container.lastElementChild) container.lastElementChild.classList.add('gap-before');
 }
@@ -1711,6 +1752,7 @@ async function renderPlayerReveal(game){
   q.options.forEach((opt, i) => {
     const d = document.createElement('div');
     d.className = 'opt-btn host-opt opt' + i;
+    d.dataset.letter = OPTION_LETTERS[i];
     if (i === q.correct){
       d.classList.add('correct');
       d.textContent = '✓ ' + opt;
@@ -1731,6 +1773,25 @@ async function renderPlayerReveal(game){
     `Puntuación total: ${me ? me.score : 0} pts`;
   renderPlayerRanking(document.getElementById('player-ranking'), game,
     Math.min(game.currentQuestionIndex + 1, QUESTIONS.length));
+
+  // Dos fases, igual que en la pantalla del profesor:
+  //  1) respuestas (cuenta atrás hasta la clasificación)  2) clasificación (cuenta atrás hasta lo siguiente)
+  const inRanking = game.phase === 'ranking';
+  document.getElementById('player-reveal-answers-block').classList.toggle('hidden', inRanking);
+  document.getElementById('player-reveal-ranking-block').classList.toggle('hidden', !inRanking);
+  document.getElementById('player-feedback').classList.toggle('hidden', inRanking);
+  const clockEl = document.getElementById('player-reveal-timer');
+  clearInterval(playerRevealInterval);
+  if (typeof game.phaseEnd === 'number'){
+    const tick = () => {
+      const r = Math.max(0, Math.ceil((game.phaseEnd - serverNow()) / 1000));
+      clockEl.textContent = `⏱️ ${r}s`;
+    };
+    tick();
+    playerRevealInterval = setInterval(tick, CONFIG.TICK_MS);
+  } else {
+    clockEl.textContent = '';
+  }
   show('screen-player-reveal');
 }
 </script>
