@@ -319,7 +319,8 @@
 <script>
 /* ============================================================
    1) CONFIGURACIÓN DE FIREBASE Y PREGUNTAS — CARGA EXTERNA
-   firebase-config.json  → credenciales de tu proyecto Firebase
+   config.dat  → credenciales de tu proyecto Firebase (JSON codificado en
+   base64; se genera con to_config.py a partir de firebase-config.json)
    (siempre en la misma carpeta que este HTML)
 
    Las preguntas se pueden elegir de tres formas:
@@ -374,7 +375,7 @@ const CONFIG = {
   PIN_MAX: 9999,
 
   // ---- Archivos externos ----
-  FIREBASE_CONFIG_FILE: 'firebase-config.json',
+  FIREBASE_CONFIG_FILE: 'config.dat',   // JSON de Firebase en base64 (ver to_config.py)
   QUIZ_SETS_FILE: 'quiz-sets.json',
   DEFAULT_QUESTIONS_FILE: 'questions.json',
   DEFAULT_QUIZ_SET_NAME: 'Preguntas por defecto',
@@ -409,7 +410,7 @@ async function loadConfigAndQuestions(){
   try{
     const configRes = await fetch(CONFIG.FIREBASE_CONFIG_FILE);
     if (!configRes.ok) throw new Error('No se pudo leer ' + CONFIG.FIREBASE_CONFIG_FILE);
-    firebaseConfig = await configRes.json();
+    firebaseConfig = decodeConfigDat(await configRes.text());
 
     firebase.initializeApp(firebaseConfig);
     db = firebase.database();
@@ -420,6 +421,23 @@ async function loadConfigAndQuestions(){
   } catch (err){
     loadingMsg.textContent = '⚠️ Error al cargar la configuración: ' + err.message +
       '. Revisa que ' + CONFIG.FIREBASE_CONFIG_FILE + ' exista junto a este HTML.';
+  }
+}
+
+// Decodifica config.dat: JSON en UTF-8 codificado en base64 (lo genera to_config.py)
+function decodeConfigDat(text){
+  let json;
+  try {
+    const binary = atob(text.replace(/\s+/g, ''));
+    const bytes = Uint8Array.from(binary, c => c.charCodeAt(0));
+    json = new TextDecoder('utf-8').decode(bytes);
+  } catch (e) {
+    throw new Error(CONFIG.FIREBASE_CONFIG_FILE + ' no es base64 válido');
+  }
+  try {
+    return JSON.parse(json);
+  } catch (e) {
+    throw new Error(CONFIG.FIREBASE_CONFIG_FILE + ' no contiene un JSON válido');
   }
 }
 
