@@ -22,7 +22,7 @@
     padding-bottom:calc(20px + env(safe-area-inset-bottom,0px));
   }
   .box{ width:100%; max-width:640px; }
-  h1{ text-align:center; font-size:clamp(1.4rem,5vw,2rem); margin-bottom:4px; }
+  h1{ text-align:center; font-size:clamp(1.4rem,5vw,2rem); margin-bottom:20px; }
   p.sub{ text-align:center; color:var(--muted); margin-top:0; margin-bottom:24px; }
   .card{
     background:var(--card); border-radius:16px; padding:28px;
@@ -168,12 +168,36 @@
     .ranking-grid .rank{ font-size:.95rem; padding:10px 12px; }
     .ranking-grid .rank .pos{ font-size:1rem; margin-right:6px; }
   }
+  /* Configuración del host en dos columnas (escritorio) */
+  .setup-grid{ display:block; }
+  @media (min-width:700px){
+    .setup-grid{ display:grid; grid-template-columns:1fr 1fr; gap:0 40px; align-items:start; }
+  }
+  /* Nombre de la sala en el lobby del host */
+  .lobby-room-name{ text-align:center; font-size:clamp(1.8rem,8vw,3rem); font-weight:800;
+    color:var(--text); margin:4px 0 18px; }
+  /* Lista de salas para el jugador */
+  .room-list{ display:flex; flex-direction:column; gap:8px; margin:10px 0 6px; }
+  .room-item{ display:flex; justify-content:space-between; align-items:center; gap:12px; width:100%;
+    padding:12px 14px; border-radius:12px; border:2px solid transparent; background:#0f3460;
+    color:var(--text); font:inherit; text-align:left; cursor:pointer; transition:.15s; }
+  .room-item:hover{ border-color:var(--muted); }
+  .room-item.selected{ border-color:var(--accent); }
+  .room-item:disabled, .room-item.disabled{ opacity:.4; filter:grayscale(1); cursor:not-allowed; }
+  .room-item:disabled:hover{ border-color:transparent; }
+  .lobby-room-code{ color:var(--muted); font-size:.5em; font-weight:600; white-space:nowrap; }
+  .room-title{ display:block; font-weight:700; }
+  .room-meta{ display:block; color:var(--muted); font-size:.85em; margin-top:2px; }
+  .room-lock{ font-size:1.2em; flex-shrink:0; }
+  @media (min-width:700px){
+    .room-item{ padding:16px 18px; font-size:1.15rem; }
+  }
   @media (prefers-color-scheme:light){
     :root:not([data-theme="dark"]){
       --bg:#eef1fb; --card:#ffffff; --text:#1a1a2e; --muted:#6b7280;
     }
     body{ background:linear-gradient(135deg,#eef1fb,#dfe6f7); }
-    input, select, .role-btn, .chip, .rank, .review-item{ background:#f1f3fb; color:var(--text); }
+    input, select, .role-btn, .chip, .rank, .review-item, .room-item{ background:#f1f3fb; color:var(--text); }
     select{ background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'></polyline></svg>"); background-repeat:no-repeat; background-position:right 14px center; background-size:18px; }
     select option{ background:#ffffff; color:var(--text); }
   }
@@ -183,12 +207,18 @@
 
 <div class="box">
   <h1>🎮 Preguntón</h1>
-  <p class="sub">Elige tu rol para empezar</p>
   <div class="card">
 
     <!-- PANTALLA DE CARGA -->
     <div id="screen-loading">
       <p class="center status-msg" id="loading-msg">Cargando configuración…</p>
+    </div>
+
+    <!-- PANTALLA: SALA CADUCADA -->
+    <div id="screen-expired" class="hidden">
+      <h2 class="center">⌛ Sala caducada</h2>
+      <p class="center status-msg" id="expired-msg"></p>
+      <button class="primary" onclick="backToRole()">Volver al inicio</button>
     </div>
 
     <!-- PANTALLA DE SELECCIÓN DE ROL -->
@@ -201,29 +231,48 @@
 
     <!-- HOST: CREAR PARTIDA -->
     <div id="screen-host-setup" class="hidden">
-      <p class="center">Elige el cuestionario</p>
+      <div class="setup-grid">
+
+        <!-- Columna izquierda: cuestionario -->
+        <div class="setup-col">
+          <p class="center">Elige el cuestionario</p>
 
           <div id="quizset-select-wrap" class="hidden">
-        <select id="quizset-select" onchange="onQuizSetChange()"></select>
+            <select id="quizset-select" onchange="onQuizSetChange()"></select>
+          </div>
+
+          <p class="center status-msg" style="margin-top:10px">— o —</p>
+          <label class="file-upload-label" for="quizset-file-input">📂 Subir mi propio JSON</label>
+          <input type="file" id="quizset-file-input" accept="application/json,.json" style="display:none" onchange="onQuizSetFileChosen(event)">
+
+          <button type="button" class="secondary" onclick="downloadExampleJSON()">⬇️ Descargar JSON de ejemplo</button>
+          <p class="center status-msg" style="margin-top:2px;font-size:.85em">Formato: <code>text</code>, <code>options</code>, <code>correct</code> (nº de la opción correcta, empezando en 0) y <code>time</code> (segundos).</p>
+
+          <p class="center status-msg" id="quizset-status" style="margin-top:10px"></p>
+        </div>
+
+        <!-- Columna derecha: ajustes de la partida -->
+        <div class="setup-col">
+          <p class="center">Número de preguntas</p>
+          <select id="quizcount-select" onchange="onQuizCountChange()">
+            <option value="10">10 preguntas</option>
+            <option value="20">20 preguntas</option>
+            <option value="all">Todas</option>
+          </select>
+          <p class="center status-msg" id="quizcount-status" style="margin-top:6px"></p>
+
+          <p class="center" style="margin-top:14px">Dificultad</p>
+          <select id="difficulty-select" onchange="updateDifficultyStatus()"></select>
+          <p class="center status-msg" id="difficulty-status" style="margin-top:6px"></p>
+
+          <p class="center" style="margin-top:14px">PIN de acceso (opcional)</p>
+          <input type="text" id="host-access-pin" placeholder="4 dígitos, o vacío para sala abierta"
+                 maxlength="4" inputmode="numeric" autocomplete="off"
+                 oninput="this.value=this.value.replace(/\D/g,'')">
+          <p class="center status-msg" id="host-pin-status" style="margin-top:6px"></p>
+        </div>
+
       </div>
-
-      <p class="center status-msg" style="margin-top:10px">— o —</p>
-      <label class="file-upload-label" for="quizset-file-input">📂 Subir mi propio JSON</label>
-      <input type="file" id="quizset-file-input" accept="application/json,.json" style="display:none" onchange="onQuizSetFileChosen(event)">
-
-      <p class="center status-msg" id="quizset-status" style="margin-top:10px"></p>
-
-      <p class="center" style="margin-top:14px">Número de preguntas</p>
-      <select id="quizcount-select" onchange="onQuizCountChange()">
-        <option value="10">10 preguntas</option>
-        <option value="20">20 preguntas</option>
-        <option value="all">Todas</option>
-      </select>
-      <p class="center status-msg" id="quizcount-status" style="margin-top:6px"></p>
-
-      <p class="center" style="margin-top:14px">Dificultad</p>
-      <select id="difficulty-select" onchange="updateDifficultyStatus()"></select>
-      <p class="center status-msg" id="difficulty-status" style="margin-top:6px"></p>
 
       <button class="primary" onclick="hostCreateGame()">Crear partida</button>
       <button class="secondary" onclick="backToRole()">← Volver</button>
@@ -231,9 +280,12 @@
 
     <!-- HOST: LOBBY -->
     <div id="screen-host-lobby" class="hidden">
-      <p class="center sub">PIN de la partida</p>
-      <div class="pin-display" id="host-pin"></div>
-      <p class="center status-msg">Los alumnos deben entrar como "Jugador" e introducir este PIN</p>
+      <p class="center sub" style="margin-bottom:0">Sala de juego</p>
+      <div class="lobby-room-name" id="host-room-name"></div>
+      <p class="center status-msg" id="host-room-lock" style="margin-top:0"></p>
+      <p class="center status-msg" id="host-room-expiry" style="margin-top:0;font-size:.9em"></p>
+      <p class="center status-msg" id="host-room-warning" style="color:#f2a541"></p>
+      <p class="center status-msg">Los alumnos deben entrar como "Jugador" y elegir esta sala en la lista</p>
       <div class="player-list" id="host-player-list"></div>
       <button class="primary" id="host-start-btn" onclick="hostStartGame()" disabled>Empezar (esperando jugadores...)</button>
     </div>
@@ -271,15 +323,24 @@
 
     <!-- PLAYER: UNIRSE -->
     <div id="screen-player-setup" class="hidden">
-      <input type="text" id="player-pin" placeholder="PIN de la partida" maxlength="6" inputmode="numeric">
       <input type="text" id="player-name" placeholder="Tu nombre (opcional)" maxlength="20">
-      <button class="primary" onclick="playerJoin()">Unirse</button>
+
+      <p class="center" style="margin:16px 0 0">Elige una sala para entrar</p>
+      <div class="room-list" id="player-room-list"></div>
+
+      <div id="player-pin-wrap" class="hidden">
+        <p class="center" id="player-pin-label" style="margin:10px 0 0"></p>
+        <input type="text" id="player-room-pin" placeholder="PIN de la sala (4 dígitos)" maxlength="4"
+               inputmode="numeric" autocomplete="off" oninput="onPlayerPinInput()">
+      </div>
+
       <button class="secondary" onclick="backToRole()">← Volver</button>
       <p class="status-msg" id="player-join-error"></p>
     </div>
 
     <!-- PLAYER: ESPERANDO -->
     <div id="screen-player-wait" class="hidden">
+      <p class="center status-msg" id="player-wait-room" style="font-weight:700;color:var(--text)"></p>
       <p class="center status-msg">✅ ¡Dentro! Esperando a que el profesor empiece la partida…</p>
     </div>
 
@@ -370,9 +431,22 @@ const CONFIG = {
   RANKING_COLS_WIDE: 4,
   RANKING_COLS_NARROW: 2,
 
-  // ---- PIN de la partida ----
-  PIN_MIN: 1000,
-  PIN_MAX: 9999,
+  // ---- Salas ----
+  ROOM_LIFETIME_MS: 60 * 60 * 1000,                 // 1 h después de crearla, la sala desaparece de la lista y se borra la partida y todos sus datos
+  ROOM_LIST_REFRESH_MS: 30000,                      // cada cuánto se revisa la caducidad en la lista del jugador
+  ROOM_CODE_LENGTH: 4,                              // código alfanumérico de la sala
+  ROOM_CODE_CHARS: 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789', // sin 0/O/1/I para evitar confusiones
+  ACCESS_PIN_LENGTH: 4,                             // PIN de acceso opcional (solo dígitos)
+  ROOM_CITIES: [
+    'Madrid', 'París', 'Moscú', 'Londres', 'Roma', 'Berlín', 'Lisboa', 'Oslo', 'Viena',
+    'Praga', 'Atenas', 'Dublín', 'Tokio', 'Pekín', 'Lima', 'Quito', 'Bogotá', 'Sídney',
+    'Toronto', 'Nairobi', 'Estocolmo', 'Helsinki', 'Varsovia', 'Budapest', 'Ámsterdam',
+    'Bruselas', 'Zúrich', 'Seúl', 'Bangkok', 'Santiago'
+  ],
+  ROOM_WEATHERS: [
+    'lluvioso', 'nublado', 'soleado', 'ventoso', 'nevado', 'tormentoso', 'brumoso',
+    'helado', 'despejado', 'caluroso', 'húmedo', 'neblinoso'
+  ],
 
   // ---- Archivos externos ----
   FIREBASE_CONFIG_FILE: 'config.dat',   // JSON de Firebase en base64 (ver to_config.py)
@@ -400,6 +474,7 @@ const CONFIG = {
 document.addEventListener('DOMContentLoaded', initDifficultySelect);
 
 let firebaseConfig = null;
+let serverTimeOffset = 0;   // diferencia entre el reloj de este dispositivo y el de Firebase
 let QUESTIONS = null;
 let db = null;
 let quizSets = [];          // [{name, file}] del manifiesto, si existe
@@ -414,6 +489,7 @@ async function loadConfigAndQuestions(){
 
     firebase.initializeApp(firebaseConfig);
     db = firebase.database();
+    db.ref('.info/serverTimeOffset').on('value', snap => { serverTimeOffset = snap.val() || 0; });
 
     await loadQuizSetsManifest();
 
@@ -632,20 +708,45 @@ async function resolveQuestionsForNewGame(){
   return true;
 }
 
+// Descarga un JSON de ejemplo con el formato esperado de preguntas/respuestas.
+function downloadExampleJSON(){
+  const example = [
+    { text: "¿Cuál es la capital de España?", options: ["Barcelona", "Madrid", "Sevilla", "Zaragoza"], correct: 1, time: 15 },
+    { text: "¿Cuánto es 7 × 8?", options: ["54", "56", "48", "64"], correct: 1, time: 20 },
+    { text: "¿Qué planeta es conocido como el planeta rojo?", options: ["Venus", "Júpiter", "Marte", "Saturno"], correct: 2, time: 15 },
+    { text: "¿Cuál de estos animales es un mamífero?", options: ["Delfín", "Tiburón", "Atún", "Pulpo"], correct: 0, time: 15 }
+  ];
+  const blob = new Blob([JSON.stringify(example, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'questions-ejemplo.json';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
 window.addEventListener('DOMContentLoaded', loadConfigAndQuestions);
 
 /* ============================================================
    3) LÓGICA DE NAVEGACIÓN ENTRE PANTALLAS
    ============================================================ */
+let currentScreenId = null;
 function show(id){
+  currentScreenId = id;
   document.querySelector('.box').classList.toggle('wide',
     id === 'screen-host-reveal' || id === 'screen-host-end');
   document.querySelectorAll('.card > div').forEach(d => d.classList.add('hidden'));
   document.getElementById(id).classList.remove('hidden');
 }
-function backToRole(){ show('screen-role'); }
+function backToRole(){ stopWatchingRooms(); show('screen-role'); }
 function showHostSetup(){ show('screen-host-setup'); }
-function showPlayerSetup(){ show('screen-player-setup'); }
+function showPlayerSetup(){
+  document.getElementById('player-join-error').textContent = '';
+  show('screen-player-setup');
+  startWatchingRooms();
+}
 
 /* ============================================================
    4) LADO HOST
@@ -657,23 +758,181 @@ let hostQuestionIndex = 0;
 // status: 'correct' | 'wrong' | 'none' ; elapsed en segundos (solo si respondió)
 let hostQuestionResults = [];
 
-function generatePin(){
-  return String(Math.floor(CONFIG.PIN_MIN + Math.random() * (CONFIG.PIN_MAX - CONFIG.PIN_MIN + 1)));
+// Hora actual según el servidor (así la caducidad no depende del reloj de cada dispositivo)
+function serverNow(){ return Date.now() + serverTimeOffset; }
+
+function isRoomExpired(room){
+  // sin hora de creación (salas antiguas) también se considera caducada
+  return !room.created || serverNow() - room.created > CONFIG.ROOM_LIFETIME_MS;
+}
+
+function formatDuration(ms){
+  const min = Math.round(ms / 60000);
+  return min % 60 === 0 ? (min / 60) + ' h' : min + ' min';
+}
+
+// Código alfanumérico de la sala (es también la clave de la partida en Firebase)
+function generateRoomCode(){
+  let code = '';
+  for (let i = 0; i < CONFIG.ROOM_CODE_LENGTH; i++){
+    code += CONFIG.ROOM_CODE_CHARS[Math.floor(Math.random() * CONFIG.ROOM_CODE_CHARS.length)];
+  }
+  return code;
+}
+
+// Nombre aleatorio tipo "Madrid lluvioso"
+function randomRoomName(){
+  const city = CONFIG.ROOM_CITIES[Math.floor(Math.random() * CONFIG.ROOM_CITIES.length)];
+  const weather = CONFIG.ROOM_WEATHERS[Math.floor(Math.random() * CONFIG.ROOM_WEATHERS.length)];
+  return city + ' ' + weather;
+}
+
+// Intenta que el nombre no coincida con el de otra sala ya publicada
+async function generateUniqueRoomName(){
+  const used = new Set();
+  try {
+    const snap = await db.ref('rooms').get();
+    Object.values(snap.val() || {}).forEach(r => { if (r && r.name) used.add(r.name.toLowerCase()); });
+  } catch (e) { /* si no se puede leer la lista, seguimos con un nombre al azar */ }
+  let name = randomRoomName();
+  for (let i = 0; i < 30 && used.has(name.toLowerCase()); i++) name = randomRoomName();
+  return name;
+}
+
+function isValidAccessPin(pin){
+  return pin.length === CONFIG.ACCESS_PIN_LENGTH && /^\d+$/.test(pin);
+}
+
+// Huella del PIN (para no guardarlo en claro en Firebase). Es una barrera sencilla
+// para clase, no seguridad real: la protección de verdad la dan las reglas de Firebase.
+function hashPin(pin, code){
+  const str = code + ':' + pin;
+  let h1 = 0xdeadbeef, h2 = 0x41c6ce57;
+  for (let i = 0; i < str.length; i++){
+    const ch = str.charCodeAt(i);
+    h1 = Math.imul(h1 ^ ch, 2654435761);
+    h2 = Math.imul(h2 ^ ch, 1597334677);
+  }
+  h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+  h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+  return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(36);
+}
+
+/* ---- Publicación de la sala en la lista (rooms/{código}) ----
+   Los jugadores leen "rooms" (ligero) en vez de todas las partidas.
+   La entrada se borra sola si el host se desconecta (onDisconnect). */
+let hostRoomInfo = null;
+let hostRoomRef = null;
+let hostConnHandler = null;
+let hostGameExpiryTimer = null;
+
+/* ---- Caducidad: 1 h después de crearla se borra la sala (rooms/{código})
+   y la partida entera (games/{código}: jugadores, respuestas, preguntas). ---- */
+function deleteGameData(code){
+  return Promise.all([
+    db.ref('rooms/' + code).remove().catch(() => {}),
+    db.ref('games/' + code).remove().catch(() => {})
+  ]);
+}
+
+// Temporizador del host; no se cancela al terminar la partida (los datos siguen ahí hasta la hora).
+function hostScheduleGameDeletion(code){
+  clearTimeout(hostGameExpiryTimer);
+  hostGameExpiryTimer = setTimeout(async () => {
+    const midGame = ['screen-host-lobby','screen-host-question','screen-host-reveal'].includes(currentScreenId);
+    hostClearFlow();                                // que no recree datos tras borrar
+    if (hostAnswersRef && hostAnswersListener) hostAnswersRef.off('value', hostAnswersListener);
+    if (hostGameRef) hostGameRef.child('players').off();
+    hostUnpublishRoom();
+    await deleteGameData(code);
+    hostGameExpiryTimer = null;
+    if (midGame){
+      document.getElementById('expired-msg').textContent =
+        'Han pasado ' + formatDuration(CONFIG.ROOM_LIFETIME_MS) + ' desde que se creó la sala. Se ha borrado junto con todos sus datos.';
+      show('screen-expired');
+    }
+  }, CONFIG.ROOM_LIFETIME_MS);
+}
+
+// Limpieza de partidas caducadas que nadie borró (p. ej. el host cerró la pestaña).
+// Mejor esfuerzo: requiere permiso de lectura sobre "games" (y ayuda tener .indexOn: ["created"]).
+async function cleanupExpiredGames(){
+  try {
+    const cutoff = serverNow() - CONFIG.ROOM_LIFETIME_MS;
+    const snap = await db.ref('games').orderByChild('created').endAt(cutoff).get();
+    if (!snap.exists()) return;
+    snap.forEach(child => {
+      const g = child.val();
+      // caducada, o sin hora de creación (partidas antiguas)
+      if (!g || typeof g.created !== 'number' || g.created <= cutoff) deleteGameData(child.key);
+    });
+  } catch (e) { /* sin permisos o sin conexión: se ignora */ }
+}
+
+function hostPublishRoom(info){
+  hostRoomInfo = info;
+  hostRoomRef = db.ref('rooms/' + hostPin);
+  hostConnHandler = db.ref('.info/connected').on('value', snap => {
+    if (snap.val() !== true) return;
+    hostRoomRef.onDisconnect().remove();
+    hostRoomRef.set(hostRoomInfo).catch(() => {
+      document.getElementById('host-room-warning').textContent =
+        '⚠️ No se pudo publicar la sala en la lista (revisa las reglas de Firebase para "rooms"). ' +
+        'Los alumnos no la verán en la lista.';
+    });
+  });
+}
+
+function hostSetRoomStatus(status){
+  if (!hostRoomInfo || !hostRoomRef) return;
+  hostRoomInfo.status = status;
+  hostRoomRef.set(hostRoomInfo).catch(() => {});
+}
+
+function hostUnpublishRoom(){
+  if (hostConnHandler) db.ref('.info/connected').off('value', hostConnHandler);
+  hostConnHandler = null;
+  if (hostRoomRef){
+    hostRoomRef.onDisconnect().cancel();
+    hostRoomRef.remove().catch(() => {});
+  }
+  hostRoomInfo = null;
+  hostRoomRef = null;
 }
 
 async function hostCreateGame(){
+  const pinStatus = document.getElementById('host-pin-status');
+  pinStatus.textContent = '';
+  const accessPin = document.getElementById('host-access-pin').value.trim();
+  if (accessPin && !isValidAccessPin(accessPin)){
+    pinStatus.textContent = '⚠️ El PIN debe tener exactamente ' + CONFIG.ACCESS_PIN_LENGTH +
+      ' dígitos (o déjalo vacío).';
+    return;
+  }
+
   const ok = await resolveQuestionsForNewGame();
   if (!ok) return; // el mensaje de error ya se muestra en quizset-status
 
-  let pin;
-  // Nos aseguramos de que el PIN no exista ya
-  do { pin = generatePin(); }
-  while ((await db.ref('games/' + pin).get()).exists());
+  cleanupExpiredGames(); // borra en segundo plano partidas antiguas que hayan quedado
 
-  hostPin = pin;
-  hostGameRef = db.ref('games/' + pin);
+  let code;
+  // Nos aseguramos de que el código no exista ya
+  do { code = generateRoomCode(); }
+  while ((await db.ref('games/' + code).get()).exists());
+
+  const name = await generateUniqueRoomName();
+  const hasPin = accessPin !== '';
+  const pinHash = hasPin ? hashPin(accessPin, code) : null;
+
+  hostPin = code;
+  hostGameRef = db.ref('games/' + code);
+  const createdAt = serverNow();
   await hostGameRef.set({
     status: 'lobby',
+    created: createdAt,
+    name: name,
+    hasPin: hasPin,
+    pinHash: pinHash,
     currentQuestionIndex: -1,
     questionStartTime: null,
     players: {},
@@ -685,8 +944,20 @@ async function hostCreateGame(){
     questions: QUESTIONS
   });
 
-  document.getElementById('host-pin').textContent = pin;
+  // Nombre de la sala con el código entre paréntesis (ayuda si hay nombres repetidos)
+  const nameEl = document.getElementById('host-room-name');
+  nameEl.textContent = name + ' ';
+  const codeEl = document.createElement('span');
+  codeEl.className = 'lobby-room-code';
+  codeEl.textContent = `(${code})`;
+  nameEl.appendChild(codeEl);
+  document.getElementById('host-room-lock').textContent = hasPin ? '🔒 Sala protegida con PIN' : '';
+  document.getElementById('host-room-expiry').textContent =
+    '⏳ La sala y todos sus datos se borrarán automáticamente ' + formatDuration(CONFIG.ROOM_LIFETIME_MS) + ' después de crearla.';
+  document.getElementById('host-room-warning').textContent = '';
   show('screen-host-lobby');
+  hostPublishRoom({ name: name, hasPin: hasPin, pinHash: pinHash, status: 'lobby', created: createdAt });
+  hostScheduleGameDeletion(code);
   listenPlayers();
 }
 
@@ -713,6 +984,7 @@ function listenPlayers(){
 function hostStartGame(){
   hostQuestionIndex = 0;
   hostQuestionResults = [];
+  hostSetRoomStatus('playing');
   hostShowQuestion();
 }
 
@@ -979,6 +1251,7 @@ function hostNextQuestion(){
 
 async function renderHostFinal(){
   hostClearFlow();
+  hostUnpublishRoom();
   const players = await getSortedPlayers();
   fillRanking(document.getElementById('host-final-ranking'), players, QUESTIONS.length);
   show('screen-host-end');
@@ -1061,36 +1334,207 @@ function generateRandomPlayerName(){
   return `${adjetivo} ${animal}`;
 }
 
-function playerJoin(){
-  const pin = document.getElementById('player-pin').value.trim();
-  const name = document.getElementById('player-name').value.trim() || generateRandomPlayerName();
-  const errorEl = document.getElementById('player-join-error');
-  errorEl.textContent = '';
+/* ---- Lista de salas (jugador) ---- */
+let roomsRef = null;
+let roomsListener = null;
+let roomsRefreshTimer = null;
+let availableRooms = {};
+const sweptRooms = new Set();
+let selectedRoomCode = null;   // sala con PIN pendiente de introducir
+let playerJoining = false;
 
-  if (!pin){
-    errorEl.textContent = 'Introduce el PIN de la partida.';
-    return;
+function stopWatchingRooms(){
+  if (roomsRef && roomsListener) roomsRef.off('value', roomsListener);
+  roomsRef = null;
+  roomsListener = null;
+  clearInterval(roomsRefreshTimer);
+  roomsRefreshTimer = null;
+}
+
+function startWatchingRooms(){
+  stopWatchingRooms();
+  selectedRoomCode = null;
+  roomsRef = db.ref('rooms');
+  roomsListener = roomsRef.on('value', snap => {
+    availableRooms = snap.val() || {};
+    renderRoomList();
+  }, () => {
+    availableRooms = {};
+    const list = document.getElementById('player-room-list');
+    list.innerHTML = '';
+    const p = document.createElement('p');
+    p.className = 'center status-msg';
+    p.style.margin = '10px 0';
+    p.textContent = 'No se pudo leer la lista de salas. Avisa al profesor.';
+    list.appendChild(p);
+  });
+  // Las salas caducan: revisamos de vez en cuando para que desaparezcan de la lista abierta
+  roomsRefreshTimer = setInterval(renderRoomList, CONFIG.ROOM_LIST_REFRESH_MS);
+}
+
+function renderRoomList(){
+  const list = document.getElementById('player-room-list');
+  list.innerHTML = '';
+  const entries = Object.entries(availableRooms)
+    .filter(([, r]) => r && r.name && !isRoomExpired(r))
+    .sort((a, b) => (b[1].created || 0) - (a[1].created || 0));
+
+  if (selectedRoomCode && !entries.some(([code, r]) => code === selectedRoomCode && r.status !== 'playing')) selectedRoomCode = null;
+
+  // Salas caducadas que siguen en la lista: se borran (sala + partida), una sola vez por código
+  Object.entries(availableRooms).forEach(([code, r]) => {
+    if (r && isRoomExpired(r) && !sweptRooms.has(code)){
+      sweptRooms.add(code);
+      deleteGameData(code);
+    }
+  });
+
+  if (entries.length === 0){
+    const p = document.createElement('p');
+    p.className = 'center status-msg';
+    p.style.margin = '10px 0';
+    p.textContent = 'No hay salas creadas todavía.';
+    list.appendChild(p);
   }
 
-  db.ref('games/' + pin).get().then(snap => {
-    if (!snap.exists()){
-      errorEl.textContent = 'No existe ninguna partida con ese PIN.';
+  entries.forEach(([code, r]) => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    const started = r.status === 'playing';
+    btn.className = 'room-item' + (code === selectedRoomCode ? ' selected' : '') + (started ? ' disabled' : '');
+    btn.disabled = started;
+    const info = document.createElement('span');
+    const title = document.createElement('span');
+    title.className = 'room-title';
+    title.textContent = `${r.name} (${code})`;
+    const meta = document.createElement('span');
+    meta.className = 'room-meta';
+    meta.textContent = started ? 'En juego · no disponible' : 'En espera';
+    info.appendChild(title);
+    info.appendChild(meta);
+    btn.appendChild(info);
+    if (r.hasPin){
+      const lock = document.createElement('span');
+      lock.className = 'room-lock';
+      lock.textContent = '🔒';
+      lock.title = 'Pide PIN';
+      btn.appendChild(lock);
+    }
+    btn.onclick = () => selectRoom(code);
+    list.appendChild(btn);
+  });
+
+  updatePinVisibility();
+}
+
+// Al pulsar una sala: si no tiene PIN se entra directamente; si lo tiene, se pide el PIN
+function selectRoom(code){
+  const room = availableRooms[code];
+  document.getElementById('player-join-error').textContent = '';
+  if (room && room.status === 'playing') return; // partida ya empezada
+  if (room && room.hasPin){
+    selectedRoomCode = code;
+    document.getElementById('player-room-pin').value = '';
+    renderRoomList();
+    document.getElementById('player-room-pin').focus();
+  } else {
+    selectedRoomCode = null;
+    renderRoomList();
+    playerJoin(code);
+  }
+}
+
+// El campo de PIN solo aparece cuando se ha pulsado una sala protegida
+function updatePinVisibility(){
+  const room = selectedRoomCode ? availableRooms[selectedRoomCode] : null;
+  const show = !!(room && room.hasPin);
+  document.getElementById('player-pin-wrap').classList.toggle('hidden', !show);
+  document.getElementById('player-pin-label').textContent =
+    show ? `PIN de ${room.name} (${selectedRoomCode})` : '';
+  if (!show) document.getElementById('player-room-pin').value = '';
+}
+
+// Al completar los 4 dígitos del PIN se intenta entrar automáticamente
+function onPlayerPinInput(){
+  const input = document.getElementById('player-room-pin');
+  input.value = input.value.replace(/\D/g, '');
+  document.getElementById('player-join-error').textContent = '';
+  if (selectedRoomCode && isValidAccessPin(input.value)) playerJoin(selectedRoomCode);
+}
+
+async function playerJoin(code){
+  if (playerJoining) return;
+  playerJoining = true;
+  const errorEl = document.getElementById('player-join-error');
+  errorEl.textContent = '';
+  try {
+    const name = document.getElementById('player-name').value.trim() || generateRandomPlayerName();
+    const gameSnap = await db.ref('games/' + code).get();
+    if (!gameSnap.exists()){
+      errorEl.textContent = 'Esa sala ya no existe.';
       return;
     }
-    playerPin = pin;
-    playerGameRef = db.ref('games/' + pin);
+    const game = gameSnap.val();
+    if (game.status === 'ended'){
+      errorEl.textContent = 'Esa partida ya ha terminado.';
+      return;
+    }
+    if (game.status !== 'lobby'){
+      errorEl.textContent = 'Esa partida ya ha empezado.';
+      return;
+    }
+    if (game.hasPin){
+      // por si la lista aún no reflejaba que la sala pide PIN
+      if (availableRooms[code]) availableRooms[code].hasPin = true;
+      if (selectedRoomCode !== code){
+        selectedRoomCode = code;
+        renderRoomList();
+      }
+      const pinInput = document.getElementById('player-room-pin');
+      const pin = pinInput.value.trim();
+      if (!isValidAccessPin(pin)){
+        errorEl.textContent = 'Esta sala pide un PIN de ' + CONFIG.ACCESS_PIN_LENGTH + ' dígitos.';
+        return;
+      }
+      if (hashPin(pin, code) !== game.pinHash){
+        errorEl.textContent = 'PIN incorrecto.';
+        pinInput.value = '';
+        pinInput.focus();
+        return;
+      }
+    }
+
+    stopWatchingRooms();
+    playerPin = code;
+    playerGameRef = db.ref('games/' + code);
     const newPlayerRef = playerGameRef.child('players').push();
     playerId = newPlayerRef.key;
     newPlayerRef.set({ name: name, score: 0 });
+    document.getElementById('player-wait-room').textContent =
+      game.name ? `📍 ${game.name} (${code})` : '';
     show('screen-player-wait');
     listenGameState();
-  });
+  } catch (err){
+    errorEl.textContent = 'No se pudo conectar con la sala: ' + err.message;
+  } finally {
+    playerJoining = false;
+  }
 }
 
 function listenGameState(){
   playerGameRef.on('value', snap => {
     const game = snap.val();
-    if (!game) return;
+    if (!game){
+      // La partida se ha borrado (caducidad). Si ya está en la pantalla final, se deja como está.
+      if (currentScreenId !== 'screen-player-end'){
+        clearInterval(playerTimerInterval);
+        playerGameRef.off();
+        document.getElementById('expired-msg').textContent =
+          'La sala ha caducado y se ha cerrado.';
+        show('screen-expired');
+      }
+      return;
+    }
 
     // Usamos siempre las preguntas guardadas en la propia partida, no un
     // JSON local: así el jugador ve exactamente el mismo cuestionario

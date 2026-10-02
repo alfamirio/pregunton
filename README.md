@@ -25,35 +25,8 @@ Funciona como página estática (compatible con **GitHub Pages**) y usa **Fireba
 1. Ve a [console.firebase.google.com](https://console.firebase.google.com) y crea un proyecto nuevo.
 2. Añade una app **Web** (`</>`) dentro del proyecto y copia el objeto de configuración que te muestra.
 3. Ve a **Compilación → Realtime Database** → **Crear base de datos** → elige una región → selecciona **modo de prueba**.
-4. En la pestaña **Reglas**, asegúrate de que estén así (necesario para que la app funcione sin login):
-   ```json
-   {
-     "rules": {
-       ".read": true,
-       ".write": true
-     }
-   }
-   ```
-
-> ⚠️ Con estas reglas, cualquiera con la URL de tu base de datos puede leer/escribir. Es aceptable para una actividad puntual de aula, pero **ciérralas o borra el proyecto cuando termines** (Reglas → pon `false`/`false`, o elimina el proyecto desde Configuración → General → Eliminar proyecto).
-
-### 2. Rellenar `firebase-config.json`
-
-Sustituye los valores de ejemplo por los de tu proyecto:
-
-```json
-{
-  "apiKey": "TU_API_KEY",
-  "authDomain": "TU_PROYECTO.firebaseapp.com",
-  "databaseURL": "https://TU_PROYECTO-default-rtdb.firebaseio.com",
-  "projectId": "TU_PROYECTO",
-  "storageBucket": "TU_PROYECTO.appspot.com",
-  "messagingSenderId": "TU_SENDER_ID",
-  "appId": "TU_APP_ID"
-}
-```
-
-Esta información no es secreta: identifica tu proyecto, pero no autoriza acceso por sí sola (la protección real está en las Reglas de la base de datos).
+4. En la pestaña **Reglas**, asegúrate de ajustarlas.
+5. Rellenar `config.dat`
 
 ### 3. Editar `questions.json`
 
