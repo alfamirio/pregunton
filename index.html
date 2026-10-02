@@ -134,6 +134,36 @@
     cursor:default; user-select:none; transition:opacity .2s, transform .2s; }
   .host-opt.correct{ transform:scale(1.03); }
   .opt-btn.incorrect.mine{ opacity:.9; outline-color:#e94560; }
+
+  /* ===== Podio final animado (5 s) ===== */
+  #podium-overlay{
+    position:fixed; inset:0; z-index:1000; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; padding:20px;
+    padding-top:calc(20px + env(safe-area-inset-top,0px));
+    padding-bottom:calc(20px + env(safe-area-inset-bottom,0px));
+    background:radial-gradient(circle at 50% 30%,var(--card),var(--bg) 75%);
+    opacity:0; pointer-events:none; color:var(--text);
+  }
+  #podium-overlay.on{ opacity:1; pointer-events:auto; animation:podFadeIn .3s ease-out; }
+  #podium-overlay.off{ opacity:0; transition:opacity .4s ease-in; }
+  @keyframes podFadeIn{ from{opacity:0} to{opacity:1} }
+  #podium-confetti{ position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }
+  .podium-title{ position:relative; color:var(--text); margin:0 0 clamp(16px,4vh,40px); font-size:clamp(1.6rem,6vw,2.8rem); text-align:center; }
+  .podium{ position:relative; display:flex; align-items:flex-end; justify-content:center;
+    gap:clamp(6px,2vw,18px); width:100%; max-width:640px; height:min(56vh,400px); }
+  .podium-col{ flex:1; min-width:0; height:100%; display:flex; flex-direction:column;
+    justify-content:flex-end; align-items:center; }
+  .podium-who{ text-align:center; max-width:100%; padding:0 4px; margin-bottom:8px; }
+  .podium-medal{ font-size:clamp(2rem,9vw,3.6rem); line-height:1; }
+  .podium-name{ color:var(--text); font-weight:800; font-size:clamp(.9rem,3.6vw,1.3rem); overflow:hidden;
+    text-overflow:ellipsis; white-space:nowrap; max-width:100%; }
+  .podium-pts{ color:var(--muted); font-weight:700; font-size:clamp(.8rem,3vw,1.05rem); }
+  .podium-block{ flex-shrink:0; width:100%; border-radius:14px 14px 0 0; display:flex; align-items:flex-start;
+    justify-content:center; padding-top:10px; font-size:clamp(1.6rem,7vw,2.6rem); font-weight:900;
+    color:rgba(0,0,0,.45); }
+  .podium-col.p1 .podium-block{ height:72%; background:linear-gradient(#ffe27a,#e0a800); }
+  .podium-col.p2 .podium-block{ height:52%;  background:linear-gradient(#e8ecf2,#9aa3b2); }
+  .podium-col.p3 .podium-block{ height:34%;  background:linear-gradient(#e6a56b,#a8622a); }
   .center{ text-align:center; }
   .hidden{ display:none !important; }
   .status-msg{ text-align:center; color:var(--muted); margin-top:20px; font-size:1.05rem; }
@@ -271,7 +301,8 @@
         <div class="setup-col">
           <p class="center">Número de preguntas</p>
           <select id="quizcount-select" onchange="onQuizCountChange()">
-            <option value="10">10 preguntas</option>
+            <option value="5">5 preguntas</option>
+            <option value="10" selected>10 preguntas</option>
             <option value="20">20 preguntas</option>
             <option value="all">Todas</option>
           </select>
@@ -407,7 +438,16 @@
   </div>
 </div>
 
+<!-- PODIO FINAL ANIMADO -->
+<div id="podium-overlay" aria-live="polite">
+  <canvas id="podium-confetti"></canvas>
+  <h2 class="podium-title">🏆 ¡Podio final!</h2>
+  <div class="podium" id="podium"></div>
+</div>
+
 <!-- SDK de Firebase (versión compat, más sencilla de usar) -->
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"
+  onerror="this.onerror=null;var s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/canvas-confetti/1.9.3/confetti.browser.min.js';document.head.appendChild(s);"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 
@@ -764,6 +804,69 @@ function downloadExampleJSON(){
 }
 
 window.addEventListener('DOMContentLoaded', loadConfigAndQuestions);
+
+/* ============================================================
+   PODIO FINAL ANIMADO (oro, plata, bronce + confeti) — dura 5 s
+   ============================================================ */
+const PODIUM_MS = 5000;
+let podiumTimer = null, podiumRaf = null;
+
+function closePodium(){
+  const ov = document.getElementById('podium-overlay');
+  clearTimeout(podiumTimer); podiumTimer = null;
+  cancelAnimationFrame(podiumRaf); podiumRaf = null;
+  if (podiumConfetti){ podiumConfetti.reset(); podiumConfetti = null; }
+  ov.classList.remove('on');
+  ov.classList.add('off');
+  setTimeout(() => { ov.classList.remove('off'); }, 500);
+}
+
+let podiumConfetti = null;
+function startConfetti(canvas, durationMs){
+  if (typeof confetti !== 'function') return;   // sin la librería (sin conexión) el podio sigue funcionando
+  podiumConfetti = confetti.create(canvas, { resize: true, useWorker: false });
+  const colors = ['#ffd54a','#e94560','#0f9b8e','#3f72af','#f2a541','#ffffff'];
+  podiumConfetti({ particleCount: 150, spread: 120, startVelocity: 55, origin: { x: .5, y: .9 }, colors: colors });
+  const end = Date.now() + durationMs - 900;
+  const frame = () => {
+    podiumConfetti({ particleCount: 4, angle: 60,  spread: 60, origin: { x: 0, y: .7 }, colors: colors });
+    podiumConfetti({ particleCount: 4, angle: 120, spread: 60, origin: { x: 1, y: .7 }, colors: colors });
+    if (Date.now() < end) podiumRaf = requestAnimationFrame(frame);
+  };
+  frame();
+}
+
+// players: array ya ordenada por puntos [{name, score}, ...]
+function showPodium(players){
+  const top = (players || []).slice(0, 3);
+  if (!top.length) return;
+  closePodium();
+  const ov = document.getElementById('podium-overlay');
+  ov.classList.remove('off');
+  const box = document.getElementById('podium');
+  box.innerHTML = '';
+  const medals = ['🥇','🥈','🥉'];
+  // Orden visual: plata – oro – bronce
+  [1, 0, 2].forEach(i => {
+    const p = top[i];
+    if (!p) return;
+    const col = document.createElement('div');
+    col.className = 'podium-col p' + (i + 1);
+    const who = document.createElement('div');
+    who.className = 'podium-who';
+    const medal = document.createElement('div'); medal.className = 'podium-medal'; medal.textContent = medals[i];
+    const name = document.createElement('div');  name.className = 'podium-name';  name.textContent = p.name;
+    const pts = document.createElement('div');   pts.className = 'podium-pts';    pts.textContent = (p.score || 0) + ' pts';
+    who.append(medal, name, pts);
+    const block = document.createElement('div');
+    block.className = 'podium-block'; block.textContent = String(i + 1);
+    col.append(who, block);
+    box.appendChild(col);
+  });
+  ov.classList.add('on');
+  startConfetti(document.getElementById('podium-confetti'), PODIUM_MS);
+  podiumTimer = setTimeout(closePodium, PODIUM_MS - 400);   // + 0,4 s de fundido = 5 s en total
+}
 
 /* ============================================================
    3) LÓGICA DE NAVEGACIÓN ENTRE PANTALLAS
@@ -1328,6 +1431,7 @@ async function renderHostFinal(){
   const players = await getSortedPlayers();
   fillRanking(document.getElementById('host-final-ranking'), players, QUESTIONS.length);
   show('screen-host-end');
+  showPodium(players);
 }
 
 // Página final: todas las preguntas ordenadas por nº de errores (más falladas primero),
@@ -1661,7 +1765,14 @@ function listenGameState(){
       document.getElementById('player-final-score').textContent =
         `Tu puntuación final: ${me ? me.score : 0} pts`;
       renderPlayerRanking(document.getElementById('player-final-ranking'), game, QUESTIONS.length);
+      const firstTime = currentScreenId !== 'screen-player-end';
       show('screen-player-end');
+      if (firstTime){
+        const sorted = Object.values(game.players || {})
+          .map(p => ({ name: p.name, score: p.score || 0 }))
+          .sort((a, b) => b.score - a.score);
+        showPodium(sorted);
+      }
     }
   });
 }
