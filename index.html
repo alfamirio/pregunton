@@ -11,7 +11,8 @@
   }
   *{box-sizing:border-box;}
   html{ scroll-padding-top:env(safe-area-inset-top,0px); }
-  html, body{ height:100%; }
+  html{ height:100%; }
+  body{ min-height:100%; }
   body{
     margin:0; font-family:'Segoe UI',system-ui,sans-serif;
     background:linear-gradient(135deg,var(--bg),#0f0f23);
@@ -86,9 +87,29 @@
   .rank{ display:flex; justify-content:space-between; padding:10px 14px; background:#0f3460;
     border-radius:10px; margin-bottom:8px; }
   .rank .pos{ color:var(--accent); font-weight:800; margin-right:10px; }
-  .rank{ gap:10px; }
-  .rank > span:first-child{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0; }
-  .rank > span:last-child{ white-space:nowrap; }
+  /* Fila de clasificación: nombre + puntos, resumen y marcas por pregunta */
+  .rank{ flex-direction:column; justify-content:flex-start; gap:6px; }
+  .rank-top{ display:flex; justify-content:space-between; gap:10px; }
+  .rank-top > span:first-child{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0; }
+  .rank-top > span:last-child{ white-space:nowrap; font-weight:700; }
+  .rank-meta{ font-size:.85em; color:var(--muted); }
+  .rank-marks{ display:flex; flex-wrap:wrap; gap:3px; }
+  .mark{ width:1.45em; height:1.45em; border-radius:4px; display:inline-flex; align-items:center;
+    justify-content:center; font-size:.75em; font-weight:800; color:#fff; }
+  .mark.ok{ background:#2ecc71; } .mark.ko{ background:#e94560; } .mark.none{ background:#6b7280; }
+  /* Página de revisión de preguntas */
+  .review-item{ background:#0f3460; border-radius:14px; padding:16px; margin-bottom:14px; }
+  .review-head{ display:flex; justify-content:space-between; flex-wrap:wrap; gap:6px 12px;
+    font-weight:700; margin-bottom:8px; }
+  .review-errors{ color:#ff7a8d; }
+  .review-errors.zero{ color:#2ecc71; }
+  .review-sub{ color:var(--muted); font-weight:400; font-size:.9em; }
+  .review-q{ font-weight:700; margin-bottom:12px; }
+  .review-item .options{ gap:8px; }
+  .review-item .opt-btn{ min-height:0; padding:12px 10px; font-size:1rem; border-radius:10px;
+    display:flex; align-items:center; justify-content:center; text-align:center; cursor:default; }
+  .review-item .opt-btn.incorrect{ outline:none; opacity:.5; }
+  .review-item .opt-btn.correct{ outline:4px solid #2ecc71; }
   /* Clasificación en dos columnas (se rellena la izquierda primero) */
   .ranking-grid{ display:grid; grid-auto-flow:column; grid-template-columns:1fr 1fr; gap:8px 16px; }
   .ranking-grid .rank{ margin-bottom:0; min-width:0; }
@@ -96,6 +117,7 @@
   .host-opt{ display:flex; align-items:center; justify-content:center; text-align:center;
     cursor:default; user-select:none; transition:opacity .2s, transform .2s; }
   .host-opt.correct{ transform:scale(1.03); }
+  .opt-btn.incorrect.mine{ opacity:.9; outline-color:#e94560; }
   .center{ text-align:center; }
   .hidden{ display:none !important; }
   .status-msg{ text-align:center; color:var(--muted); margin-top:20px; font-size:1.05rem; }
@@ -140,12 +162,18 @@
     .status-msg{ font-size:1.2rem; }
     .footer-note{ font-size:.9rem; }
   }
+  /* Clasificación en 4 columnas: más ancho y filas más compactas (escritorio) */
+  @media (min-width:700px){
+    .box.wide{ max-width:1400px; }
+    .ranking-grid .rank{ font-size:.95rem; padding:10px 12px; }
+    .ranking-grid .rank .pos{ font-size:1rem; margin-right:6px; }
+  }
   @media (prefers-color-scheme:light){
     :root:not([data-theme="dark"]){
       --bg:#eef1fb; --card:#ffffff; --text:#1a1a2e; --muted:#6b7280;
     }
     body{ background:linear-gradient(135deg,#eef1fb,#dfe6f7); }
-    input, select, .role-btn, .chip, .rank{ background:#f1f3fb; color:var(--text); }
+    input, select, .role-btn, .chip, .rank, .review-item{ background:#f1f3fb; color:var(--text); }
     select{ background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'></polyline></svg>"); background-repeat:no-repeat; background-position:right 14px center; background-size:18px; }
     select option{ background:#ffffff; color:var(--text); }
   }
@@ -193,6 +221,10 @@
       </select>
       <p class="center status-msg" id="quizcount-status" style="margin-top:6px"></p>
 
+      <p class="center" style="margin-top:14px">Dificultad</p>
+      <select id="difficulty-select" onchange="updateDifficultyStatus()"></select>
+      <p class="center status-msg" id="difficulty-status" style="margin-top:6px"></p>
+
       <button class="primary" onclick="hostCreateGame()">Crear partida</button>
       <button class="secondary" onclick="backToRole()">← Volver</button>
     </div>
@@ -226,6 +258,15 @@
     <div id="screen-host-end" class="hidden">
       <h2 class="center">🏆 Resultado final</h2>
       <div id="host-final-ranking" class="ranking-grid"></div>
+      <button class="primary" style="margin-top:20px" onclick="showHostReview()">📋 Ver revisión de preguntas</button>
+    </div>
+
+    <!-- HOST: REVISIÓN DE PREGUNTAS (ordenadas por nº de errores) -->
+    <div id="screen-host-review" class="hidden">
+      <h2 class="center">📋 Revisión de preguntas</h2>
+      <p class="center status-msg" style="margin-top:0;margin-bottom:20px">De más a menos errores</p>
+      <div id="host-review-list"></div>
+      <button class="secondary" onclick="show('screen-host-end')">← Volver al resultado final</button>
     </div>
 
     <!-- PLAYER: UNIRSE -->
@@ -256,7 +297,9 @@
 
     <!-- PLAYER: RESULTADO DE LA PREGUNTA -->
     <div id="screen-player-reveal" class="hidden">
-      <div class="center" id="player-feedback" style="font-size:1.5rem;font-weight:800;margin-bottom:10px;"></div>
+      <div class="center" id="player-feedback" style="font-size:1.5rem;font-weight:800;margin-bottom:16px;"></div>
+      <div class="question-text" id="player-reveal-q"></div>
+      <div class="options" id="player-reveal-options"></div>
       <p class="center status-msg" id="player-score"></p>
     </div>
 
@@ -295,6 +338,66 @@
    Ojo: al ser una página estática, estos JSON son tan públicos
    como el propio HTML (cualquiera puede abrirlos con su URL).
    ============================================================ */
+/* ============================================================
+   CONSTANTES — todos los valores ajustables están aquí
+   (nota: el punto de corte de 700 px también aparece en las
+   @media del CSS; si lo cambias, cámbialo allí también)
+   ============================================================ */
+const CONFIG = {
+  // ---- Tiempos del flujo del host (en milisegundos) ----
+  RESULT_DELAY_MS: 3000,        // desde que termina la pregunta hasta mostrar la clasificación
+  RANKING_DURATION_MS: 3000,    // tiempo que se muestra la clasificación tras cada pregunta
+  LATE_ANSWER_GRACE_MS: 700,    // margen para respuestas de último segundo (si se acaba el tiempo)
+  TICK_MS: 250,                 // cada cuánto se refrescan los relojes
+
+  // ---- Puntuación (por acierto: BASE + BONUS * fracción de tiempo restante) ----
+  POINTS_BASE: 500,
+  POINTS_SPEED_BONUS: 500,
+
+  // ---- Dificultad: tiempo = ceil(tiempo de la pregunta * num / den) ----
+  DEFAULT_DIFFICULTY: 'easy',
+  DIFFICULTIES: {
+    easy:     { label: 'Fácil',       num: 1, den: 1 },
+    medium:   { label: 'Medio',       num: 2, den: 3 },
+    hard:     { label: 'Difícil',     num: 1, den: 2 },
+    veryhard: { label: 'Muy difícil', num: 1, den: 3 },
+    titan:    { label: 'Titán',       num: 1, den: 4 }
+  },
+
+  // ---- Clasificación ----
+  RANKING_WIDE_MIN_PX: 700,     // ancho mínimo de pantalla para usar más columnas
+  RANKING_COLS_WIDE: 4,
+  RANKING_COLS_NARROW: 2,
+
+  // ---- PIN de la partida ----
+  PIN_MIN: 1000,
+  PIN_MAX: 9999,
+
+  // ---- Archivos externos ----
+  FIREBASE_CONFIG_FILE: 'firebase-config.json',
+  QUIZ_SETS_FILE: 'quiz-sets.json',
+  DEFAULT_QUESTIONS_FILE: 'questions.json',
+  DEFAULT_QUIZ_SET_NAME: 'Preguntas por defecto',
+
+  // ---- Preguntas cuyas opciones NO se reordenan (p. ej. "Todas las anteriores") ----
+  LOCKED_OPTION_REGEX: /^\s*(todas|todos|ninguna|ninguno|ambas|ambos|las dos|los dos)\b|^\s*[a-d]\s*(y|,|e)\s*[a-d]\s*$/i,
+
+  // ---- Nombres aleatorios para jugadores sin nombre ----
+  RANDOM_NAME_ANIMALS: [
+    'Panda', 'Zorro', 'Lobo', 'Búho', 'Koala', 'Tigre', 'Pingüino', 'Delfín',
+    'Águila', 'Jaguar', 'Mapache', 'Lince', 'Halcón', 'Nutria', 'Rinoceronte',
+    'Camaleón', 'Erizo', 'Puma', 'Canguro', 'Oso'
+  ],
+  RANDOM_NAME_ADJECTIVES: [
+    'Veloz', 'Sigiloso', 'Valiente', 'Curioso', 'Astuto', 'Feroz', 'Ágil',
+    'Misterioso', 'Travieso', 'Intrépido', 'Brillante', 'Sabio', 'Audaz',
+    'Épico', 'Escurridizo', 'Legendario', 'Despistado', 'Imparable'
+  ]
+};
+
+// Rellena el desplegable de dificultad a partir de CONFIG.DIFFICULTIES
+document.addEventListener('DOMContentLoaded', initDifficultySelect);
+
 let firebaseConfig = null;
 let QUESTIONS = null;
 let db = null;
@@ -304,8 +407,8 @@ let uploadedQuestions = null; // preguntas cargadas desde archivo local
 async function loadConfigAndQuestions(){
   const loadingMsg = document.getElementById('loading-msg');
   try{
-    const configRes = await fetch('firebase-config.json');
-    if (!configRes.ok) throw new Error('No se pudo leer firebase-config.json');
+    const configRes = await fetch(CONFIG.FIREBASE_CONFIG_FILE);
+    if (!configRes.ok) throw new Error('No se pudo leer ' + CONFIG.FIREBASE_CONFIG_FILE);
     firebaseConfig = await configRes.json();
 
     firebase.initializeApp(firebaseConfig);
@@ -316,7 +419,7 @@ async function loadConfigAndQuestions(){
     show('screen-role');
   } catch (err){
     loadingMsg.textContent = '⚠️ Error al cargar la configuración: ' + err.message +
-      '. Revisa que firebase-config.json exista junto a este HTML.';
+      '. Revisa que ' + CONFIG.FIREBASE_CONFIG_FILE + ' exista junto a este HTML.';
   }
 }
 
@@ -326,14 +429,14 @@ async function loadQuizSetsManifest(){
   const wrap = document.getElementById('quizset-select-wrap');
   const select = document.getElementById('quizset-select');
   try {
-    const res = await fetch('quiz-sets.json');
+    const res = await fetch(CONFIG.QUIZ_SETS_FILE);
     if (res.ok) {
       quizSets = await res.json();
     } else {
       throw new Error('sin manifiesto');
     }
   } catch (e) {
-    quizSets = [{ name: 'Preguntas por defecto', file: 'questions.json' }];
+    quizSets = [{ name: CONFIG.DEFAULT_QUIZ_SET_NAME, file: CONFIG.DEFAULT_QUESTIONS_FILE }];
   }
 
   select.innerHTML = '';
@@ -354,6 +457,7 @@ function onQuizSetChange(){
   const set = quizSets[idx];
   document.getElementById('quizset-status').textContent = set ? ('Seleccionado: ' + set.name) : '';
   updateQuizCountStatus();
+  updateDifficultyStatus();
 }
 
 function onQuizCountChange(){
@@ -369,6 +473,34 @@ function updateQuizCountStatus(){
   } else {
     countEl.textContent = 'Se elegirán ' + desired + ' preguntas al azar (si el set tiene menos, se usarán todas).';
   }
+}
+
+// Tiempo de una pregunta según la dificultad (ver CONFIG.DIFFICULTIES)
+function adjustedTime(time, difficulty){
+  const d = CONFIG.DIFFICULTIES[difficulty] || CONFIG.DIFFICULTIES[CONFIG.DEFAULT_DIFFICULTY];
+  return Math.ceil(time * d.num / d.den);
+}
+
+function initDifficultySelect(){
+  const select = document.getElementById('difficulty-select');
+  select.innerHTML = '';
+  Object.entries(CONFIG.DIFFICULTIES).forEach(([key, d]) => {
+    const opt = document.createElement('option');
+    opt.value = key;
+    opt.textContent = d.label;
+    select.appendChild(opt);
+  });
+  select.value = CONFIG.DEFAULT_DIFFICULTY;
+  updateDifficultyStatus();
+}
+
+function updateDifficultyStatus(){
+  const key = document.getElementById('difficulty-select').value;
+  const d = CONFIG.DIFFICULTIES[key];
+  document.getElementById('difficulty-status').textContent = !d ? '' :
+    d.num === d.den
+      ? 'Se usará el tiempo indicado en cada pregunta.'
+      : `Se usará ${d.num}/${d.den} del tiempo indicado en cada pregunta (redondeado hacia arriba).`;
 }
 
 function onQuizSetFileChosen(event){
@@ -404,6 +536,41 @@ function shuffleArray(arr){
   return a;
 }
 
+// Reparte la respuesta correcta de forma equilibrada entre las posiciones.
+// Para cada pregunta elige la posición en la que la correcta ha caído menos
+// veces hasta ahora (evitando repetir la anterior si hay empate) y baraja el
+// resto de opciones. Las preguntas con opciones tipo "Todas las anteriores",
+// "Ninguna…" o "A y B" no se reordenan para no romper su sentido.
+function balanceCorrectPositions(questions){
+  const LOCKED = CONFIG.LOCKED_OPTION_REGEX;
+  const counts = {};
+  let prev = -1;
+  return questions.map(q => {
+    const n = Array.isArray(q.options) ? q.options.length : 0;
+    const valid = n > 1 && Number.isInteger(q.correct) && q.correct >= 0 && q.correct < n;
+    if (!valid) return q;
+    if (q.options.some(o => LOCKED.test(String(o)))){
+      counts[q.correct] = (counts[q.correct] || 0) + 1;
+      prev = q.correct;
+      return q;
+    }
+    let min = Infinity;
+    for (let p = 0; p < n; p++) min = Math.min(min, counts[p] || 0);
+    let cands = [];
+    for (let p = 0; p < n; p++) if ((counts[p] || 0) === min) cands.push(p);
+    if (cands.length > 1) cands = cands.filter(p => p !== prev);
+    const pos = cands[Math.floor(Math.random() * cands.length)];
+    counts[pos] = (counts[pos] || 0) + 1;
+    prev = pos;
+
+    const correctText = q.options[q.correct];
+    const others = shuffleArray(q.options.filter((_, i) => i !== q.correct));
+    const options = others.slice();
+    options.splice(pos, 0, correctText);
+    return Object.assign({}, q, { options: options, correct: pos });
+  });
+}
+
 // Resuelve qué preguntas usar (subidas a mano > set predefinido elegido)
 // y aplica la selección aleatoria de N preguntas antes de dejarlas en QUESTIONS.
 async function resolveQuestionsForNewGame(){
@@ -435,6 +602,15 @@ async function resolveQuestionsForNewGame(){
     const n = Math.min(parseInt(desired, 10), allQuestions.length);
     QUESTIONS = shuffleArray(allQuestions).slice(0, n);
   }
+  QUESTIONS = balanceCorrectPositions(QUESTIONS);
+
+  // Ajustamos el tiempo de cada pregunta según la dificultad elegida.
+  // Como las preguntas se guardan en la partida, jugadores y host usan el mismo tiempo.
+  const difficulty = document.getElementById('difficulty-select').value;
+  QUESTIONS = QUESTIONS.map(q => {
+    const t = Number(q.time);
+    return Number.isFinite(t) ? Object.assign({}, q, { time: adjustedTime(t, difficulty) }) : q;
+  });
   return true;
 }
 
@@ -444,6 +620,8 @@ window.addEventListener('DOMContentLoaded', loadConfigAndQuestions);
    3) LÓGICA DE NAVEGACIÓN ENTRE PANTALLAS
    ============================================================ */
 function show(id){
+  document.querySelector('.box').classList.toggle('wide',
+    id === 'screen-host-reveal' || id === 'screen-host-end');
   document.querySelectorAll('.card > div').forEach(d => d.classList.add('hidden'));
   document.getElementById(id).classList.remove('hidden');
 }
@@ -457,8 +635,13 @@ function showPlayerSetup(){ show('screen-player-setup'); }
 let hostPin = null;
 let hostGameRef = null;
 let hostQuestionIndex = 0;
+// Resultados por pregunta: hostQuestionResults[idx] = { playerId: {status, elapsed} }
+// status: 'correct' | 'wrong' | 'none' ; elapsed en segundos (solo si respondió)
+let hostQuestionResults = [];
 
-function generatePin(){ return String(Math.floor(1000 + Math.random()*9000)); }
+function generatePin(){
+  return String(Math.floor(CONFIG.PIN_MIN + Math.random() * (CONFIG.PIN_MAX - CONFIG.PIN_MIN + 1)));
+}
 
 async function hostCreateGame(){
   const ok = await resolveQuestionsForNewGame();
@@ -511,6 +694,7 @@ function listenPlayers(){
 
 function hostStartGame(){
   hostQuestionIndex = 0;
+  hostQuestionResults = [];
   hostShowQuestion();
 }
 
@@ -526,6 +710,7 @@ function hostLater(fn, ms){ hostFlowTimeouts.push(setTimeout(fn, ms)); }
 
 function hostShowQuestion(){
   hostClearFlow();
+  hostQuestionEnded = false;
   const q = QUESTIONS[hostQuestionIndex];
   hostGameRef.update({
     status: 'question',
@@ -561,29 +746,53 @@ function hostShowQuestion(){
     }
   };
   tick();
-  hostTimerInterval = setInterval(tick, 250);
+  hostTimerInterval = setInterval(tick, CONFIG.TICK_MS);
 }
 
+let hostAnswersRef = null;
+let hostAnswersListener = null;
+let hostQuestionEnded = false;
+
+function stopWatchingAnswers(){
+  if (hostAnswersRef && hostAnswersListener) hostAnswersRef.off('value', hostAnswersListener);
+  hostAnswersRef = null;
+  hostAnswersListener = null;
+}
+
+// Muestra cuántos han respondido y, si ya han respondido todos,
+// termina la pregunta sin esperar a que el reloj llegue a 0.
 function watchAnswerCount(){
-  const answersRef = hostGameRef.child('answers/' + hostQuestionIndex);
+  stopWatchingAnswers();
+  const idx = hostQuestionIndex;
+  const answersRef = hostGameRef.child('answers/' + idx);
   const playersRef = hostGameRef.child('players');
   const update = () => {
     Promise.all([answersRef.get(), playersRef.get()]).then(([aSnap, pSnap]) => {
+      if (idx !== hostQuestionIndex || hostQuestionEnded) return;
       const answered = aSnap.exists() ? Object.keys(aSnap.val()).length : 0;
       const total = pSnap.exists() ? Object.keys(pSnap.val()).length : 0;
       document.getElementById('host-answer-count').textContent =
         `${answered} de ${total} han respondido`;
+      if (total > 0 && answered >= total) hostEndQuestion(true);
     });
   };
+  hostAnswersRef = answersRef;
+  hostAnswersListener = update;
   answersRef.on('value', update);
-  update();
 }
 
-// Se llama cuando el reloj llega a 0: marca la respuesta correcta,
-// a los 3 s muestra la clasificación, y a los 5 s pasa a la siguiente pregunta.
-function hostEndQuestion(){
+// Se llama cuando el reloj llega a 0 (o cuando han respondido todos):
+// marca la respuesta correcta, a los 3 s muestra la clasificación,
+// y a los 5 s pasa a la siguiente pregunta.
+function hostEndQuestion(early){
+  if (hostQuestionEnded) return;
+  hostQuestionEnded = true;
+  clearInterval(hostTimerInterval);
+  stopWatchingAnswers();
   const q = QUESTIONS[hostQuestionIndex];
-  document.getElementById('host-timer').textContent = '⏰ ¡Tiempo!';
+  document.getElementById('host-timer').textContent =
+    early ? '✅ ¡Todos han respondido!' : '⏰ ¡Tiempo!';
+
   document.querySelectorAll('#host-options .host-opt').forEach((el, i) => {
     if (i === q.correct){
       el.classList.add('correct');
@@ -593,9 +802,10 @@ function hostEndQuestion(){
     }
   });
 
-  // Pequeño margen para que lleguen respuestas enviadas justo al final
+  // Si se acabó el tiempo, pequeño margen para que lleguen respuestas enviadas
+  // justo al final. Si han respondido todos, no hace falta esperar.
   const scoring = (async () => {
-    await new Promise(r => setTimeout(r, 700));
+    if (!early) await new Promise(r => setTimeout(r, CONFIG.LATE_ANSWER_GRACE_MS));
     await hostScoreQuestion();
   })();
 
@@ -604,21 +814,21 @@ function hostEndQuestion(){
     await renderHostRanking();
     show('screen-host-reveal');
     const isLast = hostQuestionIndex >= QUESTIONS.length - 1;
-    hostRankingCountdown(5, isLast);
-    hostLater(hostNextQuestion, 5000);
-  }, 3000);
+    hostRankingCountdown(CONFIG.RANKING_DURATION_MS, isLast);
+    hostLater(hostNextQuestion, CONFIG.RANKING_DURATION_MS);
+  }, CONFIG.RESULT_DELAY_MS);
 }
 
-function hostRankingCountdown(seconds, isLast){
+function hostRankingCountdown(ms, isLast){
   const el = document.getElementById('host-next-countdown');
-  const end = Date.now() + seconds * 1000;
+  const end = Date.now() + ms;
   const tick = () => {
     const r = Math.max(0, Math.ceil((end - Date.now()) / 1000));
     el.textContent = `${isLast ? 'Resultado final' : 'Siguiente pregunta'} en ${r}s`;
   };
   tick();
   clearInterval(hostTimerInterval);
-  hostTimerInterval = setInterval(tick, 250);
+  hostTimerInterval = setInterval(tick, CONFIG.TICK_MS);
 }
 
 async function hostScoreQuestion(){
@@ -636,23 +846,58 @@ async function hostScoreQuestion(){
     if (a.choice === q.correct){
       const elapsed = Math.max(0, (a.time || qStart) - qStart);
       const timeFraction = Math.max(0, 1 - (elapsed / (q.time * 1000)));
-      const points = Math.round(500 + 500 * timeFraction);
+      const points = Math.round(CONFIG.POINTS_BASE + CONFIG.POINTS_SPEED_BONUS * timeFraction);
       const currentScore = (players[pid] && players[pid].score) || 0;
       updates['players/' + pid + '/score'] = currentScore + points;
     }
   });
+  // Guardamos acierto/error y rapidez de cada jugador en esta pregunta
+  const results = {};
+  Object.keys(players).forEach(pid => {
+    const a = answers[pid];
+    if (!a){
+      results[pid] = { status: 'none' };
+    } else {
+      const elapsed = Math.min(q.time, Math.max(0, ((a.time || qStart) - qStart) / 1000));
+      results[pid] = { status: a.choice === q.correct ? 'correct' : 'wrong', elapsed: elapsed };
+    }
+  });
+  hostQuestionResults[hostQuestionIndex] = results;
+
   await hostGameRef.update(Object.assign({ status: 'reveal' }, updates));
 }
 
-// Pinta una clasificación en dos columnas (la izquierda se rellena primero)
-function fillRanking(container, players){
+// Estadísticas de un jugador sobre las primeras `played` preguntas
+function playerStats(pid, played){
+  let correct = 0, answered = 0, totalTime = 0;
+  const marks = [];
+  for (let i = 0; i < played; i++){
+    const r = (hostQuestionResults[i] || {})[pid];
+    const status = r ? r.status : 'none';
+    marks.push(status);
+    if (status === 'correct') correct++;
+    if (status !== 'none'){ answered++; totalTime += r.elapsed || 0; }
+  }
+  return { correct, marks, avg: answered ? totalTime / answered : null };
+}
+
+// Pinta una clasificación en dos columnas (la izquierda se rellena primero).
+// Cada jugador muestra: puntos, aciertos/total, tiempo medio y acierto/error por pregunta.
+function fillRanking(container, players, played){
   container.innerHTML = '';
   container.classList.add('ranking-grid');
+  const cols = window.innerWidth >= CONFIG.RANKING_WIDE_MIN_PX
+    ? CONFIG.RANKING_COLS_WIDE : CONFIG.RANKING_COLS_NARROW;
+  container.style.gridTemplateColumns = `repeat(${cols}, minmax(0, 1fr))`;
   container.style.gridTemplateRows =
-    `repeat(${Math.max(1, Math.ceil(players.length / 2))}, auto)`;
+    `repeat(${Math.max(1, Math.ceil(players.length / cols))}, auto)`;
   players.forEach((p, i) => {
+    const st = playerStats(p.id, played);
     const row = document.createElement('div');
     row.className = 'rank';
+
+    const top = document.createElement('div');
+    top.className = 'rank-top';
     const left = document.createElement('span');
     const pos = document.createElement('span');
     pos.className = 'pos';
@@ -661,17 +906,46 @@ function fillRanking(container, players){
     left.appendChild(document.createTextNode(p.name));
     const right = document.createElement('span');
     right.textContent = (p.score || 0) + ' pts';
-    row.appendChild(left);
-    row.appendChild(right);
+    top.appendChild(left);
+    top.appendChild(right);
+
+    const meta = document.createElement('div');
+    meta.className = 'rank-meta';
+    meta.textContent = `✅ ${st.correct}/${played} · ⏱ ` +
+      (st.avg === null ? '–' : st.avg.toFixed(1) + ' s');
+    meta.title = 'Aciertos / preguntas · tiempo medio de respuesta';
+
+    const marks = document.createElement('div');
+    marks.className = 'rank-marks';
+    st.marks.forEach((status, qi) => {
+      const m = document.createElement('span');
+      m.className = 'mark ' + (status === 'correct' ? 'ok' : status === 'wrong' ? 'ko' : 'none');
+      m.textContent = status === 'correct' ? '✓' : status === 'wrong' ? '✗' : '–';
+      m.title = `Pregunta ${qi + 1}: ` +
+        (status === 'correct' ? 'acierto' : status === 'wrong' ? 'error' : 'sin responder');
+      marks.appendChild(m);
+    });
+
+    row.appendChild(top);
+    row.appendChild(meta);
+    row.appendChild(marks);
     container.appendChild(row);
   });
 }
 
+async function getSortedPlayers(){
+  const snap = await hostGameRef.child('players').get();
+  const players = Object.entries(snap.val() || {}).map(([id, p]) => ({
+    id: id, name: p.name, score: p.score || 0
+  }));
+  players.sort((a, b) => b.score - a.score);
+  return players;
+}
+
 async function renderHostRanking(){
-  const playersSnap = await hostGameRef.child('players').get();
-  const players = Object.values(playersSnap.val() || {});
-  players.sort((a,b) => (b.score||0) - (a.score||0));
-  fillRanking(document.getElementById('host-ranking'), players);
+  const players = await getSortedPlayers();
+  fillRanking(document.getElementById('host-ranking'), players,
+    Math.min(hostQuestionIndex + 1, QUESTIONS.length));
 }
 
 function hostNextQuestion(){
@@ -686,11 +960,70 @@ function hostNextQuestion(){
 }
 
 async function renderHostFinal(){
-  const playersSnap = await hostGameRef.child('players').get();
-  const players = Object.values(playersSnap.val() || {});
-  players.sort((a,b) => (b.score||0) - (a.score||0));
-  fillRanking(document.getElementById('host-final-ranking'), players);
+  hostClearFlow();
+  const players = await getSortedPlayers();
+  fillRanking(document.getElementById('host-final-ranking'), players, QUESTIONS.length);
   show('screen-host-end');
+}
+
+// Página final: todas las preguntas ordenadas por nº de errores (más falladas primero),
+// con las 4 opciones y la respuesta correcta marcada.
+// Error = respuesta incorrecta o pregunta sin responder.
+function showHostReview(){
+  const list = document.getElementById('host-review-list');
+  list.innerHTML = '';
+
+  const items = QUESTIONS.map((q, idx) => {
+    const res = Object.values(hostQuestionResults[idx] || {});
+    const wrong = res.filter(r => r.status === 'wrong').length;
+    const none = res.filter(r => r.status === 'none').length;
+    return { q, idx, wrong, none, errors: wrong + none };
+  });
+  items.sort((a, b) => (b.errors - a.errors) || (a.idx - b.idx));
+
+  items.forEach(it => {
+    const box = document.createElement('div');
+    box.className = 'review-item';
+
+    const head = document.createElement('div');
+    head.className = 'review-head';
+    const title = document.createElement('span');
+    title.textContent = 'Pregunta ' + (it.idx + 1);
+    const err = document.createElement('span');
+    err.className = 'review-errors' + (it.errors === 0 ? ' zero' : '');
+    if (it.errors === 0){
+      err.textContent = '✅ Sin errores';
+    } else {
+      err.textContent = `❌ ${it.errors} error${it.errors > 1 ? 'es' : ''} `;
+      const sub = document.createElement('span');
+      sub.className = 'review-sub';
+      sub.textContent = `(${it.wrong} fallo${it.wrong === 1 ? '' : 's'} · ${it.none} sin responder)`;
+      err.appendChild(sub);
+    }
+    head.appendChild(title);
+    head.appendChild(err);
+
+    const qt = document.createElement('div');
+    qt.className = 'review-q';
+    qt.textContent = it.q.text;
+
+    const opts = document.createElement('div');
+    opts.className = 'options';
+    it.q.options.forEach((opt, i) => {
+      const d = document.createElement('div');
+      d.className = 'opt-btn opt' + i + (i === it.q.correct ? ' correct' : ' incorrect');
+      d.textContent = (i === it.q.correct ? '✓ ' : '') + opt;
+      opts.appendChild(d);
+    });
+
+    box.appendChild(head);
+    box.appendChild(qt);
+    box.appendChild(opts);
+    list.appendChild(box);
+  });
+
+  show('screen-host-review');
+  window.scrollTo(0, 0);
 }
 
 /* ============================================================
@@ -704,19 +1037,9 @@ let playerHasAnswered = false;
 
 // Genera un nombre aleatorio estilo "Adjetivo Animal" para quien no
 // escriba el suyo (por ejemplo: "Panda Veloz", "Zorro Sigiloso").
-const RANDOM_NAME_ANIMALS = [
-  'Panda', 'Zorro', 'Lobo', 'Búho', 'Koala', 'Tigre', 'Pingüino', 'Delfín',
-  'Águila', 'Jaguar', 'Mapache', 'Lince', 'Halcón', 'Nutria', 'Rinoceronte',
-  'Camaleón', 'Erizo', 'Puma', 'Canguro', 'Oso'
-];
-const RANDOM_NAME_ADJECTIVES = [
-  'Veloz', 'Sigiloso', 'Valiente', 'Curioso', 'Astuto', 'Feroz', 'Ágil',
-  'Misterioso', 'Travieso', 'Intrépido', 'Brillante', 'Sabio', 'Audaz',
-  'Épico', 'Escurridizo', 'Legendario', 'Despistado', 'Imparable'
-];
 function generateRandomPlayerName(){
-  const animal = RANDOM_NAME_ANIMALS[Math.floor(Math.random() * RANDOM_NAME_ANIMALS.length)];
-  const adjetivo = RANDOM_NAME_ADJECTIVES[Math.floor(Math.random() * RANDOM_NAME_ADJECTIVES.length)];
+  const animal = CONFIG.RANDOM_NAME_ANIMALS[Math.floor(Math.random() * CONFIG.RANDOM_NAME_ANIMALS.length)];
+  const adjetivo = CONFIG.RANDOM_NAME_ADJECTIVES[Math.floor(Math.random() * CONFIG.RANDOM_NAME_ADJECTIVES.length)];
   return `${adjetivo} ${animal}`;
 }
 
@@ -810,7 +1133,7 @@ function renderPlayerQuestion(index, startTime){
       clearInterval(playerTimerInterval);
       if (!playerHasAnswered) show('screen-player-answered');
     }
-  }, 250);
+  }, CONFIG.TICK_MS);
 }
 
 function playerAnswer(index, choice){
@@ -840,6 +1163,28 @@ async function renderPlayerReveal(game){
     feedback.textContent = '⏰ No respondiste a tiempo';
     feedback.style.color = 'var(--muted)';
   }
+
+  // Pregunta y opciones (solo visuales), con la respuesta correcta marcada
+  document.getElementById('player-reveal-q').textContent = q.text;
+  const optsEl = document.getElementById('player-reveal-options');
+  optsEl.innerHTML = '';
+  q.options.forEach((opt, i) => {
+    const d = document.createElement('div');
+    d.className = 'opt-btn host-opt opt' + i;
+    if (i === q.correct){
+      d.classList.add('correct');
+      d.textContent = '✓ ' + opt;
+    } else {
+      d.classList.add('incorrect');
+      if (myAnswer && myAnswer.choice === i){
+        d.classList.add('mine');
+        d.textContent = '✗ ' + opt;   // la que marcó el alumno y falló
+      } else {
+        d.textContent = opt;
+      }
+    }
+    optsEl.appendChild(d);
+  });
 
   const me = game.players && game.players[playerId];
   document.getElementById('player-score').textContent =
