@@ -74,6 +74,7 @@
   .player-tag{ text-align:center; margin:0 0 14px; }
   .player-tag span{ display:inline-block; background:#0f3460; padding:6px 14px; border-radius:20px;
     font-size:.95rem; font-weight:700; color:var(--text); }
+  .player-qcount{ text-align:center; color:var(--muted); font-size:.95rem; font-weight:600; margin:-6px 0 14px; }
   .chip{ background:#0f3460; padding:8px 14px; border-radius:20px; font-size:.95rem; }
   .question-text{ font-size:clamp(1.1rem,4.5vw,1.4rem); font-weight:700; margin-bottom:20px; text-align:center; }
   .timer{ text-align:center; font-size:1.2rem; color:var(--accent); margin-bottom:16px; font-weight:700; }
@@ -96,6 +97,9 @@
   .rank-top > span:first-child{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0; }
   .rank-top > span:last-child{ white-space:nowrap; font-weight:700; }
   .rank-meta{ font-size:.85em; color:var(--muted); }
+  .rank.me{ outline:2px solid var(--accent); }
+  .rank.gap-before{ margin-top:12px; border-top:2px dashed var(--muted); }
+  .player-ranking-title{ text-align:center; margin:20px 0 10px; font-size:1.15rem; }
   .rank-marks{ display:flex; flex-wrap:wrap; gap:3px; }
   .mark{ width:1.45em; height:1.45em; border-radius:4px; display:inline-flex; align-items:center;
     justify-content:center; font-size:.75em; font-weight:800; color:#fff; }
@@ -351,6 +355,7 @@
     <!-- PLAYER: PREGUNTA -->
     <div id="screen-player-question" class="hidden">
       <div class="player-tag"><span></span></div>
+      <div class="player-qcount"></div>
       <div class="timer" id="player-timer"></div>
       <div class="question-text" id="player-q-text"></div>
       <div class="options" id="player-options"></div>
@@ -359,23 +364,30 @@
     <!-- PLAYER: ESPERANDO RESULTADOS -->
     <div id="screen-player-answered" class="hidden">
       <div class="player-tag"><span></span></div>
+      <div class="player-qcount"></div>
       <p class="center status-msg">Respuesta enviada. Esperando al resto…</p>
     </div>
 
     <!-- PLAYER: RESULTADO DE LA PREGUNTA -->
     <div id="screen-player-reveal" class="hidden">
       <div class="player-tag"><span></span></div>
-      <div class="center" id="player-feedback" style="font-size:1.5rem;font-weight:800;margin-bottom:16px;"></div>
+      <div class="player-qcount"></div>
+      <div class="center" id="player-feedback" style="font-size:1.5rem;font-weight:800;margin-bottom:6px;"></div>
+      <p class="center status-msg" id="player-score" style="margin-top:0;color:var(--text);font-weight:700"></p>
+      <h3 class="player-ranking-title">🏆 Clasificación</h3>
+      <div id="player-ranking"></div>
+      <h3 class="player-ranking-title">Respuesta correcta</h3>
       <div class="question-text" id="player-reveal-q"></div>
       <div class="options" id="player-reveal-options"></div>
-      <p class="center status-msg" id="player-score"></p>
     </div>
 
     <!-- PLAYER: FIN -->
     <div id="screen-player-end" class="hidden">
       <div class="player-tag"><span></span></div>
       <h2 class="center">🏁 Partida terminada</h2>
-      <p class="center status-msg" id="player-final-score"></p>
+      <p class="center status-msg" id="player-final-score" style="margin-top:0;color:var(--text);font-weight:700"></p>
+      <h3 class="player-ranking-title">🏆 Clasificación final</h3>
+      <div id="player-final-ranking"></div>
     </div>
 
   </div>
@@ -438,6 +450,7 @@ const CONFIG = {
   RANKING_WIDE_MIN_PX: 700,     // ancho mínimo de pantalla para usar más columnas
   RANKING_COLS_WIDE: 4,
   RANKING_COLS_NARROW: 2,
+  PLAYER_RANKING_TOP: 10,       // filas del ranking que ve el jugador (+ la suya si queda fuera)
 
   // ---- Salas ----
   ROOM_LIFETIME_MS: 60 * 60 * 1000,                 // 1 h después de crearla, la sala desaparece de la lista y se borra la partida y todos sus datos
@@ -1173,16 +1186,18 @@ async function hostScoreQuestion(){
     }
   });
   hostQuestionResults[hostQuestionIndex] = results;
+  updates['results/' + hostQuestionIndex] = results;   // los jugadores lo usan para su ranking
 
   await hostGameRef.update(Object.assign({ status: 'reveal' }, updates));
 }
 
 // Estadísticas de un jugador sobre las primeras `played` preguntas
-function playerStats(pid, played){
+function playerStats(pid, played, src){
+  src = src || hostQuestionResults;
   let correct = 0, answered = 0, totalTime = 0;
   const marks = [];
   for (let i = 0; i < played; i++){
-    const r = (hostQuestionResults[i] || {})[pid];
+    const r = (src[i] || {})[pid];
     const status = r ? r.status : 'none';
     marks.push(status);
     if (status === 'correct') correct++;
@@ -1193,25 +1208,26 @@ function playerStats(pid, played){
 
 // Pinta una clasificación en dos columnas (la izquierda se rellena primero).
 // Cada jugador muestra: puntos, aciertos/total, tiempo medio y acierto/error por pregunta.
-function fillRanking(container, players, played){
+function fillRanking(container, players, played, opts){
+  opts = opts || {};
   container.innerHTML = '';
   container.classList.add('ranking-grid');
-  const cols = window.innerWidth >= CONFIG.RANKING_WIDE_MIN_PX
-    ? CONFIG.RANKING_COLS_WIDE : CONFIG.RANKING_COLS_NARROW;
+  const cols = opts.cols || (window.innerWidth >= CONFIG.RANKING_WIDE_MIN_PX
+    ? CONFIG.RANKING_COLS_WIDE : CONFIG.RANKING_COLS_NARROW);
   container.style.gridTemplateColumns = `repeat(${cols}, minmax(0, 1fr))`;
   container.style.gridTemplateRows =
     `repeat(${Math.max(1, Math.ceil(players.length / cols))}, auto)`;
   players.forEach((p, i) => {
-    const st = playerStats(p.id, played);
+    const st = playerStats(p.id, played, opts.results);
     const row = document.createElement('div');
-    row.className = 'rank';
+    row.className = 'rank' + (opts.meId && p.id === opts.meId ? ' me' : '');
 
     const top = document.createElement('div');
     top.className = 'rank-top';
     const left = document.createElement('span');
     const pos = document.createElement('span');
     pos.className = 'pos';
-    pos.textContent = '#' + (i + 1);
+    pos.textContent = '#' + (p.pos || (i + 1));
     left.appendChild(pos);
     left.appendChild(document.createTextNode(p.name));
     const right = document.createElement('span');
@@ -1570,6 +1586,12 @@ function listenGameState(){
       QUESTIONS = game.questions;
     }
 
+    // "Pregunta k de n" bajo el nombre
+    if (typeof game.currentQuestionIndex === 'number' && game.currentQuestionIndex >= 0 && QUESTIONS){
+      const txt = `Pregunta ${game.currentQuestionIndex + 1} de ${QUESTIONS.length}`;
+      document.querySelectorAll('.player-qcount').forEach(el => { el.textContent = txt; });
+    }
+
     if (game.status === 'lobby'){
       show('screen-player-wait');
     }
@@ -1597,6 +1619,7 @@ function listenGameState(){
       const me = game.players && game.players[playerId];
       document.getElementById('player-final-score').textContent =
         `Tu puntuación final: ${me ? me.score : 0} pts`;
+      renderPlayerRanking(document.getElementById('player-final-ranking'), game, QUESTIONS.length);
       show('screen-player-end');
     }
   });
@@ -1644,6 +1667,25 @@ function playerAnswer(index, choice){
   show('screen-player-answered');
 }
 
+// Ranking en la pantalla del jugador: primeros puestos + su propia fila si queda fuera.
+// Una columna en móvil y dos en pantallas anchas.
+function renderPlayerRanking(container, game, played){
+  const all = Object.entries(game.players || {}).map(([id, p]) => ({
+    id: id, name: p.name, score: p.score || 0
+  }));
+  all.sort((a, b) => b.score - a.score);
+  all.forEach((p, i) => { p.pos = i + 1; });
+  const top = all.slice(0, CONFIG.PLAYER_RANKING_TOP);
+  const mine = all.find(p => p.id === playerId);
+  const extra = mine && mine.pos > CONFIG.PLAYER_RANKING_TOP;
+  const cols = window.innerWidth >= CONFIG.RANKING_WIDE_MIN_PX ? 2 : 1;
+  const results = game.results || {};
+  fillRanking(container, extra ? top.concat([mine]) : top, played,
+    { cols: cols, meId: playerId, results: results });
+  // la fila propia (última) se separa visualmente del resto con una línea discontinua
+  if (extra && container.lastElementChild) container.lastElementChild.classList.add('gap-before');
+}
+
 async function renderPlayerReveal(game){
   const q = QUESTIONS[game.currentQuestionIndex];
   const myAnswer = game.answers &&
@@ -1687,6 +1729,8 @@ async function renderPlayerReveal(game){
   const me = game.players && game.players[playerId];
   document.getElementById('player-score').textContent =
     `Puntuación total: ${me ? me.score : 0} pts`;
+  renderPlayerRanking(document.getElementById('player-ranking'), game,
+    Math.min(game.currentQuestionIndex + 1, QUESTIONS.length));
   show('screen-player-reveal');
 }
 </script>
