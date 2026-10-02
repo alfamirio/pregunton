@@ -71,6 +71,9 @@
     font-weight:800; color:var(--accent); margin:12px 0; word-break:break-all;
   }
   .player-list{ display:flex; flex-wrap:wrap; gap:8px; margin-top:16px; }
+  .player-tag{ text-align:center; margin:0 0 14px; }
+  .player-tag span{ display:inline-block; background:#0f3460; padding:6px 14px; border-radius:20px;
+    font-size:.95rem; font-weight:700; color:var(--text); }
   .chip{ background:#0f3460; padding:8px 14px; border-radius:20px; font-size:.95rem; }
   .question-text{ font-size:clamp(1.1rem,4.5vw,1.4rem); font-weight:700; margin-bottom:20px; text-align:center; }
   .timer{ text-align:center; font-size:1.2rem; color:var(--accent); margin-bottom:16px; font-weight:700; }
@@ -340,12 +343,14 @@
 
     <!-- PLAYER: ESPERANDO -->
     <div id="screen-player-wait" class="hidden">
+      <div class="player-tag"><span></span></div>
       <p class="center status-msg" id="player-wait-room" style="font-weight:700;color:var(--text)"></p>
       <p class="center status-msg">✅ ¡Dentro! Esperando a que el profesor empiece la partida…</p>
     </div>
 
     <!-- PLAYER: PREGUNTA -->
     <div id="screen-player-question" class="hidden">
+      <div class="player-tag"><span></span></div>
       <div class="timer" id="player-timer"></div>
       <div class="question-text" id="player-q-text"></div>
       <div class="options" id="player-options"></div>
@@ -353,11 +358,13 @@
 
     <!-- PLAYER: ESPERANDO RESULTADOS -->
     <div id="screen-player-answered" class="hidden">
+      <div class="player-tag"><span></span></div>
       <p class="center status-msg">Respuesta enviada. Esperando al resto…</p>
     </div>
 
     <!-- PLAYER: RESULTADO DE LA PREGUNTA -->
     <div id="screen-player-reveal" class="hidden">
+      <div class="player-tag"><span></span></div>
       <div class="center" id="player-feedback" style="font-size:1.5rem;font-weight:800;margin-bottom:16px;"></div>
       <div class="question-text" id="player-reveal-q"></div>
       <div class="options" id="player-reveal-options"></div>
@@ -366,6 +373,7 @@
 
     <!-- PLAYER: FIN -->
     <div id="screen-player-end" class="hidden">
+      <div class="player-tag"><span></span></div>
       <h2 class="center">🏁 Partida terminada</h2>
       <p class="center status-msg" id="player-final-score"></p>
     </div>
@@ -1002,7 +1010,8 @@ function hostShowQuestion(){
   hostClearFlow();
   hostQuestionEnded = false;
   const q = QUESTIONS[hostQuestionIndex];
-  hostGameRef.update({
+  const qIdx = hostQuestionIndex;
+  const startWrite = hostGameRef.update({
     status: 'question',
     currentQuestionIndex: hostQuestionIndex,
     questionStartTime: firebase.database.ServerValue.TIMESTAMP
@@ -1026,9 +1035,20 @@ function hostShowQuestion(){
 
   // Reloj del host
   const timerEl = document.getElementById('host-timer');
-  const endTime = Date.now() + q.time * 1000;
+  // Provisional hasta que el servidor confirme la hora de inicio; después el host usa
+  // exactamente la misma referencia que los jugadores (questionStartTime + tiempo)
+  let endTime = serverNow() + q.time * 1000;
+  startWrite
+    .then(() => hostGameRef.child('questionStartTime').get())
+    .then(snap => {
+      const st = snap.val();
+      if (qIdx === hostQuestionIndex && !hostQuestionEnded && typeof st === 'number'){
+        endTime = st + q.time * 1000;
+      }
+    })
+    .catch(() => {});
   const tick = () => {
-    const remaining = Math.max(0, Math.ceil((endTime - Date.now()) / 1000));
+    const remaining = Math.max(0, Math.ceil((endTime - serverNow()) / 1000));
     timerEl.textContent = `⏱️ ${remaining}s`;
     if (remaining <= 0){
       clearInterval(hostTimerInterval);
@@ -1111,9 +1131,9 @@ function hostEndQuestion(early){
 
 function hostRankingCountdown(ms, isLast){
   const el = document.getElementById('host-next-countdown');
-  const end = Date.now() + ms;
+  const end = serverNow() + ms;
   const tick = () => {
-    const r = Math.max(0, Math.ceil((end - Date.now()) / 1000));
+    const r = Math.max(0, Math.ceil((end - serverNow()) / 1000));
     el.textContent = `${isLast ? 'Resultado final' : 'Siguiente pregunta'} en ${r}s`;
   };
   tick();
@@ -1322,6 +1342,10 @@ function showHostReview(){
    ============================================================ */
 let playerPin = null;
 let playerId = null;
+let playerShownQuestion = -1;   // índice de la pregunta ya dibujada (evita redibujar con cada respuesta ajena)
+function setPlayerTag(name){
+  document.querySelectorAll('.player-tag span').forEach(el => { el.textContent = '👤 ' + name; });
+}
 let playerGameRef = null;
 let playerTimerInterval = null;
 let playerHasAnswered = false;
@@ -1509,6 +1533,8 @@ async function playerJoin(code){
     playerGameRef = db.ref('games/' + code);
     const newPlayerRef = playerGameRef.child('players').push();
     playerId = newPlayerRef.key;
+    playerShownQuestion = -1;
+    setPlayerTag(name);
     newPlayerRef.set({ name: name, score: 0 });
     document.getElementById('player-wait-room').textContent =
       game.name ? `📍 ${game.name} (${code})` : '';
@@ -1528,6 +1554,7 @@ function listenGameState(){
       // La partida se ha borrado (caducidad). Si ya está en la pantalla final, se deja como está.
       if (currentScreenId !== 'screen-player-end'){
         clearInterval(playerTimerInterval);
+        playerShownQuestion = -1;
         playerGameRef.off();
         document.getElementById('expired-msg').textContent =
           'La sala ha caducado y se ha cerrado.';
@@ -1551,8 +1578,12 @@ function listenGameState(){
         game.answers[game.currentQuestionIndex] &&
         game.answers[game.currentQuestionIndex][playerId];
       if (!alreadyAnswered){
-        playerHasAnswered = false;
-        renderPlayerQuestion(game.currentQuestionIndex, game.questionStartTime);
+        // Solo se dibuja una vez por pregunta: los cambios en las respuestas de los
+        // demás no deben reconstruir los botones ni reiniciar el reloj
+        if (playerShownQuestion !== game.currentQuestionIndex){
+          playerHasAnswered = false;
+          renderPlayerQuestion(game.currentQuestionIndex, game.questionStartTime);
+        }
       } else {
         show('screen-player-answered');
       }
@@ -1572,6 +1603,7 @@ function listenGameState(){
 }
 
 function renderPlayerQuestion(index, startTime){
+  playerShownQuestion = index;
   const q = QUESTIONS[index];
   document.getElementById('player-q-text').textContent = q.text;
   const optsContainer = document.getElementById('player-options');
@@ -1587,15 +1619,19 @@ function renderPlayerQuestion(index, startTime){
 
   clearInterval(playerTimerInterval);
   const timerEl = document.getElementById('player-timer');
-  const endTime = (startTime || Date.now()) + q.time * 1000;
-  playerTimerInterval = setInterval(() => {
-    const remaining = Math.max(0, Math.ceil((endTime - Date.now()) / 1000));
+  // Mismo instante final que el host: hora de inicio del servidor + tiempo de la pregunta,
+  // medido con la hora del servidor (no con el reloj del móvil, que puede ir desajustado)
+  const endTime = (startTime || serverNow()) + q.time * 1000;
+  const tick = () => {
+    const remaining = Math.max(0, Math.ceil((endTime - serverNow()) / 1000));
     timerEl.textContent = `⏱️ ${remaining}s`;
     if (remaining <= 0){
       clearInterval(playerTimerInterval);
       if (!playerHasAnswered) show('screen-player-answered');
     }
-  }, CONFIG.TICK_MS);
+  };
+  tick();
+  playerTimerInterval = setInterval(tick, CONFIG.TICK_MS);
 }
 
 function playerAnswer(index, choice){
